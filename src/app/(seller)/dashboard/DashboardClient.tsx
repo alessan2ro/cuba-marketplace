@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import Image from 'next/image';
+
 import {
-  User, Package, Bell, Settings, Store,
+  User, Bell, Settings, Store,
   BarChart2, LogOut, Lock, ChevronRight,
   MapPin, MessageCircle, Phone, AlertCircle, CheckCircle
 } from 'lucide-react';
@@ -59,7 +60,7 @@ export default function DashboardClient({ profile, email, userId }: Props) {
   const [activePanel, setActivePanel] = useState<PanelType>('perfil');
   const [modalPlan, setModalPlan] = useState<typeof PLANS[0] | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState(profile.subscription_status);
-  const [pendingSent, setPendingSent] = useState(profile.subscription_status === 'pending');
+
   const [fullName, setFullName] = useState(profile.full_name || '');
   const [phone, setPhone] = useState(profile.phone || '');
   const [saving, setSaving] = useState(false);
@@ -111,7 +112,6 @@ export default function DashboardClient({ profile, email, userId }: Props) {
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
     await supabase.from('profiles').update({ subscription_status: 'pending' }).eq('id', userId);
     setSubscriptionStatus('pending');
-    setPendingSent(true);
     setModalPlan(null);
   };
 

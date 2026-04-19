@@ -14,14 +14,15 @@ export default async function HomePage() {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  let profile = null;
+
+  let navProfile = null;
   if (user) {
     const { data } = await supabase
       .from('profiles')
       .select('username, role')
       .eq('id', user.id)
       .single();
-    profile = data;
+    navProfile = data;
   }
 
   const { data: products } = await supabase
@@ -42,6 +43,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
+
       <Navbar />
 
       <main className="flex-1">

@@ -465,6 +465,7 @@ export default function AdminDashboardClient({ adminName }: { adminName: string 
                                         {ads.map(ad => (
                                             <tr key={ad.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition">
                                                 <td className="px-5 py-3">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                                     <img src={ad.image_url} alt="" className="w-16 h-10 object-cover rounded-lg" />
                                                 </td>
                                                 <td className="px-5 py-3 text-gray-300 max-w-xs truncate">{ad.description}</td>

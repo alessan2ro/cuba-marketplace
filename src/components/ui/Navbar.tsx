@@ -5,7 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+const supabase = createClient();
 import SearchBar from './SearchBar';
+
 import {
   Plus, User, Package, Heart,
   LogOut, Menu, X, Store, ShoppingBag,
@@ -23,7 +25,7 @@ export default function Navbar() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const supabase = createClient();
+
 
   useEffect(() => {
     const getUser = async () => {
