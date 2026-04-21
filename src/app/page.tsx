@@ -46,50 +46,61 @@ export default async function HomePage() {
 
       <Navbar />
 
-       {/* Categorías */}
-        <section className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-2 mb-3">
-           { /* <Tag size={15} style={{ color: 'var(--accent)' }} />
-           <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
-              Categorías
-            </span>*/}
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      {/* Categorías */}
+      <section className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex items-center gap-2 mb-3">
+        </div>
+        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <Link
+            href="/"
+            className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all"
+            style={{
+              background: 'var(--primary)',
+              color: '#fff',
+              border: '1px solid transparent',
+            }}
+          >
+            <Package size={14} />
+            Todo
+          </Link>
+          {categories?.map((cat: Category) => (
             <Link
-              href="/"
-              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all"
+              key={cat.id}
+              href={`/search?category=${cat.id}`}
+              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap"
               style={{
-                background: 'var(--primary)',
-                color: '#fff',
-                border: '1px solid transparent',
+                background: 'var(--surface)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border)',
               }}
             >
-              <Package size={14} />
-              Todo
+              {cat.name}
             </Link>
-            {categories?.map((cat: Category) => (
-              <Link
-                key={cat.id}
-                href={`/search?category=${cat.id}`}
-                className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap"
-                style={{
-                  background: 'var(--surface)',
-                  color: 'var(--text-secondary)',
-                  border: '1px solid var(--border)',
-                }}
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-        </section>
+          ))}
+        </div>
+      </section>
+      {!user && (
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href="/register" className="btn-accent flex items-center justify-center gap-2">
+            <Store size={16} />
+            Publicar anuncio
+          </Link>
+          <Link
+            href="/login"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all"
+            style={{ border: '1.5px solid var(--primary-muted)', color: '#000' }}
+          >
+            <ShoppingBag size={16} />
+            Iniciar sesión
+          </Link>
+        </div>
+      )}
 
-        
 
       <main className="flex-1">
 
         {/* Hero */}
-        <section style={{ background: 'var(--primary)' }} className="py-14 px-4">
+        {/* <section style={{ background: 'var(--primary)' }} className="py-14 px-4">
           <div className="max-w-7xl mx-auto text-center">
             <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 tracking-tight">
               Compra y Vende en Cuba
@@ -115,12 +126,12 @@ export default async function HomePage() {
               </div>
             )}
           </div>
-        </section>
+        </section>*/}
 
         {/* Banner de publicidad */}
         {ads && ads.length > 0 && <AdsBanner ads={ads} />}
 
-       
+
         {/* Provincias */}
         <section className="max-w-7xl mx-auto px-4 pb-6">
           <div className="flex items-center gap-2 mb-3">

@@ -10,7 +10,7 @@ import {
   User, Bell, Settings, Store, BarChart2, LogOut,
   Lock, ChevronRight, MapPin, MessageCircle, Phone,
   AlertCircle, CheckCircle, Menu, X, Plus, Trash2,
-  Pencil, Clock, CreditCard, Upload, Building2
+  Pencil, Package, Clock, CreditCard, Upload, Building2
 } from 'lucide-react';
 
 
@@ -575,13 +575,13 @@ export default function DashboardClient({ profile, email, userId, initialStores,
                           </span>
                         )}
                         <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={() => { handleEditStore(store); setActivePanel('tienda'); }}
-                            className="p-1.5 rounded-lg transition-all"
-                            style={{ color: 'var(--accent)', background: 'var(--accent-light)' }}
+                          <Link
+                            href={`/store/${store.id}`}
+                            className="p-1.5 rounded-lg transition-all text-xs flex items-center gap-1 px-3"
+                            style={{ color: 'var(--primary)', background: 'var(--primary-light)', border: '1px solid var(--primary-muted)' }}
                           >
-                            <Pencil size={13} />
-                          </button>
+                            <Package size={13} /> Ver productos
+                          </Link>
                           <button
                             onClick={() => handleDeleteStore(store.id)}
                             className="p-1.5 rounded-lg transition-all"
@@ -653,7 +653,7 @@ export default function DashboardClient({ profile, email, userId, initialStores,
             <div className="max-w-2xl mx-auto">
               <div className="flex items-center justify-between mb-6">
                 <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  {editingStoreId ? 'Editar tienda' : 'Crear tienda'}
+                  {editingStoreId ? 'Editar tienda' : 'Mi tienda'}
                 </h1>
                 {!showStoreForm && (
                   <button

@@ -95,3 +95,29 @@ export interface StoreRating {
   comment: string | null;
   created_at: string;
 }
+
+export interface StoreProduct {
+  id: string;
+  store_id: string;
+  seller_id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  quantity: number;
+  price: number;
+  has_discount: boolean;
+  original_price: number | null;
+  status: 'active' | 'paused' | 'sold_out';
+  specifications: { tag: string; value: string }[];
+  created_at: string;
+  updated_at: string;
+  store_product_images?: StoreProductImage[];
+}
+
+export interface StoreProductImage {
+  id: number;
+  product_id: string;
+  image_url: string;
+  imagekit_file_id: string;
+  is_main: boolean;
+}
