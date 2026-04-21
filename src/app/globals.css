@@ -349,3 +349,21 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Grid responsive productos */
+@media (min-width: 768px) {
+  .md-grid-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg-grid-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* Ocultar scrollbar en scroll horizontal */
+section div::-webkit-scrollbar {
+  display: none;
+}

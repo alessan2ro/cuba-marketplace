@@ -5,25 +5,12 @@ import ProductCard from '@/components/ui/ProductCard';
 import AdsBanner from '@/components/ui/AdsBanner';
 import Link from 'next/link';
 import { Product, Category, Province } from '@/types';
-import {
-  Search, Tag, MapPin, Package,
-  ShoppingBag, Store, ChevronRight
-} from 'lucide-react';
+import { MapPin, Package, ChevronRight, Search, Store, ShoppingBag } from 'lucide-react';
 
 export default async function HomePage() {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-
-  let navProfile = null;
-  if (user) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('username, role')
-      .eq('id', user.id)
-      .single();
-    navProfile = data;
-  }
 
   const { data: products } = await supabase
     .from('products')
@@ -42,108 +29,158 @@ export default async function HomePage() {
     .order('order_index');
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
-
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--background)', overflowX: 'hidden' }}>
       <Navbar />
 
-      {/* Categorías */}
-      <section className="max-w-7xl mx-auto px-4 py-6">
-        <div
-          className="flex gap-2 pb-2 scrollbar-hide"
-          style={{
-            overflowX: 'auto',
-            flexWrap: 'nowrap',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          <Link
-            href="/"
-            className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all"
-            style={{
-              background: 'var(--primary)',
-              color: '#fff',
-              border: '1px solid transparent',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <Package size={14} />
-            Todo
-          </Link>
-          {categories?.map((cat: Category) => (
-            <Link
-              key={cat.id}
-              href={`/search?category=${cat.id}`}
-              style={{
-                flexShrink: 0,
-                background: 'var(--surface)',
-                color: 'var(--text-secondary)',
-                border: '1px solid var(--border)',
-                whiteSpace: 'nowrap',
-                padding: '0.5rem 1rem',
-                borderRadius: '999px',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.375rem',
-                textDecoration: 'none',
-              }}
-            >
-              {cat.name}
-            </Link>
-          ))}
-        </div>
-      </section>
-      <main className="flex-1">
+      <main style={{ flex: 1 }}>
 
         {/* Hero */}
-        {/* <section style={{ background: 'var(--primary)' }} className="py-14 px-4">
-          <div className="max-w-7xl mx-auto text-center">
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 tracking-tight">
+        <section style={{ background: 'var(--primary)', padding: '3rem 1rem' }}>
+          <div style={{ maxWidth: '80rem', margin: '0 auto', textAlign: 'center' }}>
+            <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 3rem)', fontWeight: 800, color: '#fff', marginBottom: '0.75rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
               Compra y Vende en Cuba
             </h1>
-            <p className="text-base md:text-lg mb-8" style={{ color: 'var(--primary-muted)' }}>
+            <p style={{ color: 'var(--primary-muted)', fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', marginBottom: '2rem' }}>
               Encuentra lo que necesitas en tu provincia
             </p>
-
             {!user && (
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link href="/register" className="btn-accent flex items-center justify-center gap-2">
-                  <Store size={16} />
-                  Publicar anuncio
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
+                <Link
+                  href="/register"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    background: 'var(--accent)', color: '#fff',
+                    padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)',
+                    fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
+                  }}
+                >
+                  <Store size={16} /> Publicar anuncio
                 </Link>
                 <Link
                   href="/login"
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all"
-                  style={{ border: '1.5px solid var(--primary-muted)', color: '#fff' }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff',
+                    padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)',
+                    fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
+                  }}
                 >
-                  <ShoppingBag size={16} />
-                  Iniciar sesión
+                  <ShoppingBag size={16} /> Iniciar sesión
                 </Link>
               </div>
             )}
           </div>
-        </section>*/}
+        </section>
 
-        {/* Banner de publicidad */}
-        {ads && ads.length > 0 && <AdsBanner ads={ads} />}
+        {/* Banner publicidad */}
+        {ads && ads.length > 0 && (
+          <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '1.5rem 1rem 0' }}>
+            <AdsBanner ads={ads} />
+          </div>
+        )}
 
+        {/* Categorías - scroll horizontal sin romper layout */}
+        <section style={{ padding: '1.5rem 0' }}>
+          <div style={{ maxWidth: '80rem', margin: '0 auto', paddingLeft: '1rem' }}>
+            <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Categorías
+            </p>
+          </div>
+          {/* Contenedor de scroll - ocupa todo el ancho sin overflow oculto */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.5rem',
+              overflowX: 'auto',
+              overflowY: 'visible',
+              paddingLeft: '1rem',
+              paddingRight: '1rem',
+              paddingBottom: '0.5rem',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            <Link
+              href="/"
+              style={{
+                flexShrink: 0,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+                padding: '0.4rem 1rem',
+                borderRadius: '999px',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                background: 'var(--primary)',
+                color: '#fff',
+                border: '1px solid transparent',
+              }}
+            >
+              <Package size={13} />
+              Todo
+            </Link>
+            {categories?.map((cat: Category) => (
+              <Link
+                key={cat.id}
+                href={`/search?category=${cat.id}`}
+                style={{
+                  flexShrink: 0,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '0.4rem 1rem',
+                  borderRadius: '999px',
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                  background: 'var(--surface)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </div>
+        </section>
 
         {/* Provincias */}
-        <section className="max-w-7xl mx-auto px-4 pb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin size={15} style={{ color: 'var(--accent)' }} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+        <section style={{ maxWidth: '80rem', margin: '0 auto', padding: '0 1rem 1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <MapPin size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Filtrar por provincia
             </span>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <Link
+              href="/"
+              style={{
+                fontSize: '0.75rem',
+                padding: '0.35rem 0.875rem',
+                borderRadius: '999px',
+                fontWeight: 600,
+                textDecoration: 'none',
+                background: 'var(--primary)',
+                color: '#fff',
+                border: '1px solid transparent',
+              }}
+            >
+              Todas
+            </Link>
             {provinces?.map((prov: Province) => (
               <Link
                 key={prov.id}
                 href={`/search?province=${prov.id}`}
-                className="text-xs px-3 py-1.5 rounded-full transition-all font-medium"
                 style={{
+                  fontSize: '0.75rem',
+                  padding: '0.35rem 0.875rem',
+                  borderRadius: '999px',
+                  fontWeight: 500,
+                  textDecoration: 'none',
                   background: 'var(--surface)',
                   color: 'var(--text-secondary)',
                   border: '1px solid var(--border)',
@@ -156,32 +193,48 @@ export default async function HomePage() {
         </section>
 
         {/* Productos */}
-        <section className="max-w-7xl mx-auto px-4 pb-16">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="section-title">Últimos anuncios</h2>
+        <section style={{ maxWidth: '80rem', margin: '0 auto', padding: '0 1rem 4rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              Últimos anuncios
+            </h2>
             <Link
               href="/search"
-              className="flex items-center gap-1 text-sm font-medium transition-colors"
-              style={{ color: 'var(--accent)' }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                fontSize: '0.85rem', fontWeight: 500,
+                color: 'var(--accent)', textDecoration: 'none',
+              }}
             >
-              Ver todos
-              <ChevronRight size={15} />
+              Ver todos <ChevronRight size={15} />
             </Link>
           </div>
 
           {products && products.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '0.75rem',
+            }}
+              className="md-grid-3 lg-grid-4"
+            >
               {products.map((product: Product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 card">
-              <Search size={40} className="mx-auto mb-4" style={{ color: 'var(--text-muted)' }} />
-              <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            <div style={{
+              textAlign: 'center',
+              padding: '4rem 1rem',
+              background: 'var(--surface)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border)',
+            }}>
+              <Search size={40} style={{ color: 'var(--text-muted)', margin: '0 auto 1rem' }} />
+              <p style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
                 No hay productos todavía
               </p>
-              <p className="text-sm mt-1 mb-5" style={{ color: 'var(--text-muted)' }}>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
                 ¡Sé el primero en publicar!
               </p>
               <Link href="/register" className="btn-primary">
