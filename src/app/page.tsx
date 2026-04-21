@@ -46,6 +46,46 @@ export default async function HomePage() {
 
       <Navbar />
 
+       {/* Categorías */}
+        <section className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center gap-2 mb-3">
+           { /* <Tag size={15} style={{ color: 'var(--accent)' }} />
+           <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+              Categorías
+            </span>*/}
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <Link
+              href="/"
+              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all"
+              style={{
+                background: 'var(--primary)',
+                color: '#fff',
+                border: '1px solid transparent',
+              }}
+            >
+              <Package size={14} />
+              Todo
+            </Link>
+            {categories?.map((cat: Category) => (
+              <Link
+                key={cat.id}
+                href={`/search?category=${cat.id}`}
+                className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap"
+                style={{
+                  background: 'var(--surface)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        
+
       <main className="flex-1">
 
         {/* Hero */}
@@ -80,44 +120,7 @@ export default async function HomePage() {
         {/* Banner de publicidad */}
         {ads && ads.length > 0 && <AdsBanner ads={ads} />}
 
-        {/* Categorías */}
-        <section className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Tag size={15} style={{ color: 'var(--accent)' }} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
-              Categorías
-            </span>
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <Link
-              href="/"
-              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all"
-              style={{
-                background: 'var(--primary)',
-                color: '#fff',
-                border: '1px solid transparent',
-              }}
-            >
-              <Package size={14} />
-              Todo
-            </Link>
-            {categories?.map((cat: Category) => (
-              <Link
-                key={cat.id}
-                href={`/search?category=${cat.id}`}
-                className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap"
-                style={{
-                  background: 'var(--surface)',
-                  color: 'var(--text-secondary)',
-                  border: '1px solid var(--border)',
-                }}
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-        </section>
-
+       
         {/* Provincias */}
         <section className="max-w-7xl mx-auto px-4 pb-6">
           <div className="flex items-center gap-2 mb-3">
