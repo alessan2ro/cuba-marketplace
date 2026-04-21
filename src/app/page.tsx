@@ -48,9 +48,14 @@ export default async function HomePage() {
 
       {/* Categorías */}
       <section className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-2 mb-3">
-        </div>
-        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div
+          className="flex gap-2 pb-2 scrollbar-hide"
+          style={{
+            overflowX: 'auto',
+            flexWrap: 'nowrap',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
           <Link
             href="/"
             className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all"
@@ -58,6 +63,7 @@ export default async function HomePage() {
               background: 'var(--primary)',
               color: '#fff',
               border: '1px solid transparent',
+              whiteSpace: 'nowrap',
             }}
           >
             <Package size={14} />
@@ -67,11 +73,20 @@ export default async function HomePage() {
             <Link
               key={cat.id}
               href={`/search?category=${cat.id}`}
-              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap"
               style={{
+                flexShrink: 0,
                 background: 'var(--surface)',
                 color: 'var(--text-secondary)',
                 border: '1px solid var(--border)',
+                whiteSpace: 'nowrap',
+                padding: '0.5rem 1rem',
+                borderRadius: '999px',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+                textDecoration: 'none',
               }}
             >
               {cat.name}
@@ -79,24 +94,6 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
-      {!user && (
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/register" className="btn-accent flex items-center justify-center gap-2">
-            <Store size={16} />
-            Publicar anuncio
-          </Link>
-          <Link
-            href="/login"
-            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all"
-            style={{ border: '1.5px solid var(--primary-muted)', color: '#000' }}
-          >
-            <ShoppingBag size={16} />
-            Iniciar sesión
-          </Link>
-        </div>
-      )}
-
-
       <main className="flex-1">
 
         {/* Hero */}

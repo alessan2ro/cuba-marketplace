@@ -1,42 +1,44 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(req: NextRequest) {
-  const { email, password } = await req.json();
+  try {
+    const { email, password } = await req.json();
 
-  const supabase = await createClient();
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Credenciales requeridas' }, { status: 400 });
+    }
 
-  // Buscar admin con email y password hasheado
-  const { data: admin, error } = await supabase.rpc("verify_admin", {
-    p_email: email,
-    p_password: password,
-  });
+    const supabase = createAdminClient();
 
-  if (error || !admin) {
-    return NextResponse.json(
-      { error: "Credenciales incorrectas" },
-      { status: 401 },
-    );
-  }
+    const { data, error } = await supabase.rpc('verify_admin', {
+      p_email: email.toLowerCase().trim(),
+      p_password: password,
+    });
 
-  const response = NextResponse.json({ ok: true });
+    if (error || !data || data.length === 0) {
+      return NextResponse.json({ error: 'Credenciales incorrectas' }, { status: 401 });
+    }
 
-  // Cookie de sesión admin (httpOnly, 8 horas)
-  response.cookies.set(
-    "admin_session",
-    JSON.stringify({
+    const admin = data[0];
+
+    const response = NextResponse.json({ ok: true });
+
+    response.cookies.set('admin_session', JSON.stringify({
       id: admin.id,
       email: admin.email,
       name: admin.name,
-    }),
-    {
+    }), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 8,
-      path: "/",
-      sameSite: "strict",
-    },
-  );
+      path: '/',
+      sameSite: 'strict',
+    });
 
-  return response;
+    return response;
+
+  } catch {
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+  }
 }
