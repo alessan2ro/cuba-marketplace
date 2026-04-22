@@ -103,7 +103,7 @@ const emptyStoreForm: StoreForm = {
   image_url: '',
   imagekit_file_id: '',
 };
-const CURRENCIES = ['CUP', 'USD', 'MLC'];
+const CURRENCIES = ['CUP', 'USD'];
 
 
 export default function DashboardClient({ profile, email, userId, initialStores, categories }: Props) {
@@ -301,8 +301,8 @@ export default function DashboardClient({ profile, email, userId, initialStores,
     <>
       <div className="px-4 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
         <Link href="/" className="logo" style={{ fontSize: '1.1rem' }}>
-          <Image src="/images/lotengo-logo.png" alt="LoTengo" width={26} height={26} />
-          LoTengo
+          <Image src="/images/logo.png" alt="Mercacentro" width={26} height={26} />
+          Mercacentro
         </Link>
       </div>
 
@@ -398,8 +398,8 @@ export default function DashboardClient({ profile, email, userId, initialStores,
       >
         <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <Link href="/" className="logo" style={{ fontSize: '1.1rem' }}>
-            <Image src="/images/logo.png" alt="LoTengo" width={26} height={26} />
-            LoTengo
+            <Image src="/images/logo.png" alt="Mercacentro" width={26} height={26} />
+            Mercacentro
           </Link>
           <button onClick={() => setSidebarOpen(false)} style={{ color: 'var(--text-muted)' }}>
             <X size={20} />
@@ -474,8 +474,8 @@ export default function DashboardClient({ profile, email, userId, initialStores,
             <Menu size={20} />
           </button>
           <Link href="/" className="logo" style={{ fontSize: '1rem' }}>
-            <Image src="/images/logo.png" alt="LoTengo" width={22} height={22} />
-            LoTengo
+            <Image src="/images/logo.png" alt="Mercacentro" width={22} height={22} />
+            Mercacentro
           </Link>
           <div className="w-9" />
         </div>

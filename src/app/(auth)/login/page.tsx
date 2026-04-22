@@ -13,7 +13,7 @@ export default function LoginPage() {
       >
         <Link href="/" className="logo" style={{ color: '#fff' }}>
           <Image src="/images/logo.png" alt="LoTengo" width={32} height={32} priority />
-          LoTengo
+          Mercacentro
         </Link>
 
         <div>
@@ -21,12 +21,12 @@ export default function LoginPage() {
             Compra y vende<br />en toda Cuba
           </h2>
           <p style={{ color: 'var(--primary-muted)' }} className="text-base leading-relaxed">
-            Miles de productos disponibles en las 15 provincias del país. Encuentra lo que necesitas o publica lo que tienes.
+            Miles de productos disponibles en las 16 provincias del país. Encuentra lo que necesitas o publica lo que tienes.
           </p>
         </div>
 
         <p className="text-sm" style={{ color: 'var(--primary-muted)' }}>
-          © {new Date().getFullYear()} LoTengo
+          © {new Date().getFullYear()} Mercacentro
         </p>
       </div>
 
@@ -37,8 +37,8 @@ export default function LoginPage() {
           {/* Logo móvil */}
           <div className="lg:hidden mb-8">
             <Link href="/" className="logo">
-              <Image src="/images/lotengo-logo.png" alt="LoTengo" width={28} height={28} />
-              LoTengo
+              <Image src="/images/logo.png" alt="Mercacentro" width={28} height={28} />
+              Mercacentro
             </Link>
           </div>
 

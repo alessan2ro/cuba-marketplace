@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
           <div>
-            <h3 className="text-white font-bold text-lg mb-3">LoTengo</h3>
+            <h3 className="text-white font-bold text-lg mb-3">Mercacento</h3>
             <p className="text-sm text-gray-400">
               El marketplace de compra y venta dentro de Cuba. Conectamos compradores y vendedores en todo el país.
             </p>
@@ -26,13 +26,13 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-3">Provincias</h4>
             <p className="text-sm text-gray-400">
-              Disponible en las 15 provincias de Cuba.
+              Disponible en las 16 provincias de Cuba.
             </p>
           </div>
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} LoTengo. Todos los derechos reservados.
+          © {new Date().getFullYear()} Mercacentro. Todos los derechos reservados.
         </div>
       </div>
     </footer>

@@ -12,8 +12,8 @@ export default function RegisterPage() {
         style={{ background: 'var(--primary)' }}
       >
         <Link href="/" className="logo" style={{ color: '#fff' }}>
-          <Image src="/images/lotengo-logo.png" alt="LoTengo" width={32} height={32} priority />
-          LoTengo
+          <Image src="/images/logo.png" alt="Mercacentro" width={32} height={32} priority />
+          Mercacentro
         </Link>
 
         <div>
@@ -46,7 +46,7 @@ export default function RegisterPage() {
         </div>
 
         <p className="text-sm" style={{ color: 'var(--primary-muted)' }}>
-          © {new Date().getFullYear()} LoTengo
+          © {new Date().getFullYear()} Mercacentro
         </p>
       </div>
 
@@ -56,8 +56,8 @@ export default function RegisterPage() {
 
           <div className="lg:hidden mb-8">
             <Link href="/" className="logo">
-              <Image src="/images/logo.png" alt="LoTengo" width={28} height={28} />
-              LoTengo
+              <Image src="/images/logo.png" alt="Mercacentro" width={28} height={28} />
+              Mercacentro
             </Link>
           </div>
 
@@ -66,7 +66,7 @@ export default function RegisterPage() {
               Crear cuenta
             </h1>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              Únete gratis a LoTengo
+              Únete gratis a Mercacentro
             </p>
           </div>
 

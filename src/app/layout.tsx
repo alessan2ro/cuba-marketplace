@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LoTengo - Compra y Vende en Cuba',
+  title: 'Mercacentro - Compra y Vende en Cuba',
   description: 'El marketplace de compra y venta dentro de Cuba.',
 };
 

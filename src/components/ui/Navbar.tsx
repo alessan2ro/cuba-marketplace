@@ -84,8 +84,8 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="logo">
             <Image
-              src="/images/lotengo-logo.png"
-              alt="LoTengo"
+              src="/images/logo.png"
+              alt="Mercacentro"
               width={32}
               height={32}
               priority
