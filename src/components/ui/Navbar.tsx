@@ -5,18 +5,25 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { Store, StoreProduct } from '@/types';
 const supabase = createClient();
 import SearchBar from './SearchBar';
 
 import {
   Plus, User, Package, Heart,
-  LogOut, Menu, X, Store, ShoppingBag,
-  ChevronDown
+  LogOut, Menu, X, ShoppingBag,
+  ChevronDown, LogIn
 } from 'lucide-react';
 
 interface UserProfile {
   username: string;
   role: 'buyer' | 'seller';
+}
+
+interface Props {
+  store: Store;
+  initialProducts: StoreProduct[];
+  userId: string;
 }
 
 export default function Navbar() {
@@ -104,7 +111,7 @@ export default function Navbar() {
               <>
                 {user.role === 'seller' && (
                   <Link
-                    href="/products/create"
+                    href="/seller/store/${store.id}/products/new"
                     className="btn-primary"
                     style={{ padding: '0.5rem 1rem' }}
                   >
@@ -163,8 +170,8 @@ export default function Navbar() {
                         </p>
                         <div className="flex items-center gap-1 mt-0.5">
                           {user.role === 'seller'
-                            ? <Store size={11} style={{ color: 'var(--accent)' }} />
-                            : <ShoppingBag size={11} style={{ color: 'var(--accent)' }} />
+                            ? <Plus size={11} style={{ color: 'var(--accent)' }} />
+                            : <LogIn size={11} style={{ color: 'var(--accent)' }} />
                           }
                           <p className="text-xs font-medium" style={{ color: 'var(--accent)' }}>
                             {user.role === 'seller' ? 'Vendedor' : 'Comprador'}
