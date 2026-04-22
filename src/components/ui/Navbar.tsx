@@ -26,7 +26,12 @@ interface Props {
   userId: string;
 }
 
-export default function Navbar() {
+export default function Navbar({ store,  initialProducts}: Props) {
+  const supabase = createClient();
+  const [products, setProducts] = useState<StoreProduct[]>(initialProducts);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -111,7 +116,7 @@ export default function Navbar() {
               <>
                 {user.role === 'seller' && (
                   <Link
-                    href="/seller/store/${store.id}/products/new"
+                    href={`/seller/store/${store.id}/products/new`}
                     className="btn-primary"
                     style={{ padding: '0.5rem 1rem' }}
                   >
@@ -301,7 +306,7 @@ export default function Navbar() {
 
                 {user.role === 'seller' && (
                   <Link
-                    href="/products/create"
+                    href={`/seller/store/${store.id}/products/new`}
                     className="btn-primary justify-center"
                     onClick={() => setMenuOpen(false)}
                   >
