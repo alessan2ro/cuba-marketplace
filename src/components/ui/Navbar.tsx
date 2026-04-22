@@ -90,7 +90,7 @@ export default function Navbar() {
               height={32}
               priority
             />
-            LoTengo
+            Mercacentro
           </Link>
 
           {/* SearchBar escritorio */}
