@@ -576,7 +576,7 @@ export default function DashboardClient({ profile, email, userId, initialStores,
                         )}
                         <div className="flex items-center gap-2 shrink-0">
                           <Link
-                            href={`/store/${store.id}`}
+                            href={`/seller/store/${store.id}`}
                             className="p-1.5 rounded-lg transition-all text-xs flex items-center gap-1 px-3"
                             style={{ color: 'var(--primary)', background: 'var(--primary-light)', border: '1px solid var(--primary-muted)' }}
                           >

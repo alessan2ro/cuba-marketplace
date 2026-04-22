@@ -81,7 +81,7 @@ export default function StoreProductsClient({ store, initialProducts, userId }: 
           </div>
         </div>
         <Link
-          href={`/store/${store.id}/products/new`}
+          href={`/seller/store/${store.id}/products/new`}
           className="btn-primary"
         >
           <Plus size={15} /> Nuevo producto
@@ -178,7 +178,7 @@ export default function StoreProductsClient({ store, initialProducts, userId }: 
                       <PauseCircle size={15} />
                     </button>
                     <Link
-                      href={`/store/${store.id}/products/${product.id}/edit`}
+                      href={`/seller/store/${store.id}/products/${product.id}/edit`}
                       className="p-2 rounded-lg transition-all"
                       style={{ background: 'var(--accent-light)', color: 'var(--accent)' }}
                     >

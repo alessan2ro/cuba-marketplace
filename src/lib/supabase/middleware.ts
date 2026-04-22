@@ -28,7 +28,8 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
-  const privatePaths = ["/dashboard", "/products/create"];
+ {/* const privatePaths = ["/dashboard", "/products/create"];*/}
+  const privatePaths = ['/dashboard', '/seller/store'];
   const isPrivate = privatePaths.some((p) => path.startsWith(p));
 
   if (isPrivate && !user) {
