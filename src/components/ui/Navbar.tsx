@@ -26,12 +26,8 @@ interface Props {
   userId: string;
 }
 
-export default function Navbar({ store,  initialProducts}: Props) {
+export default function Navbar({ store}: Props) {
   const supabase = createClient();
-  const [products, setProducts] = useState<StoreProduct[]>(initialProducts);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-
-
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
