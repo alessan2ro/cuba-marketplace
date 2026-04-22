@@ -111,6 +111,7 @@ export interface StoreProduct {
   specifications: { tag: string; value: string }[];
   created_at: string;
   updated_at: string;
+  stores?: Pick<Store, 'id' | 'name'>;
   store_product_images?: StoreProductImage[];
 }
 

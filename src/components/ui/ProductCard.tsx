@@ -1,13 +1,26 @@
 import Link from 'next/link';
-import { Product } from '@/types';
+import { Product, StoreProduct } from '@/types';
 
 interface ProductCardProps {
-  product: Product;
+  product: Product | StoreProduct;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const mainImage = product.product_images?.find(img => img.is_main)
-    || product.product_images?.[0];
+  const isStoreProduct = 'name' in product;
+  const mainImage = isStoreProduct
+    ? product.store_product_images?.find(img => img.is_main) || product.store_product_images?.[0]
+    : product.product_images?.find(img => img.is_main) || product.product_images?.[0];
+  const title = isStoreProduct ? product.name : product.title;
+  const href = isStoreProduct ? `/store/${product.store_id}` : `/products/${product.id}`;
+  const locationLabel = isStoreProduct
+    ? product.stores?.name || 'Tienda'
+    : product.provinces?.name || '';
+  const categoryLabel = isStoreProduct
+    ? product.category || ''
+    : `${product.categories?.icon || ''} ${product.categories?.name || ''}`.trim();
+  const ownerLabel = isStoreProduct
+    ? product.stores?.name || ''
+    : product.profiles?.username || '';
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CU', {
@@ -18,7 +31,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Link href={`/products/${product.id}`}>
+    <Link href={href}>
       <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group">
 
         {/* Imagen */}
@@ -26,7 +39,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {mainImage ? (
             <img
               src={mainImage.image_url}
-              alt={product.title}
+              alt={title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
             />
           ) : (
@@ -38,19 +51,20 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
 
           {/* Badge condición */}
-          <span className={`absolute top-2 left-2 text-xs font-medium px-2 py-1 rounded-full ${
-            product.condition === 'nuevo'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-600'
-          }`}>
-            {product.condition === 'nuevo' ? 'Nuevo' : 'Usado'}
-          </span>
+          {!isStoreProduct && (
+            <span className={`absolute top-2 left-2 text-xs font-medium px-2 py-1 rounded-full ${product.condition === 'nuevo'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-600'
+              }`}>
+              {product.condition === 'nuevo' ? 'Nuevo' : 'Usado'}
+            </span>
+          )}
         </div>
 
         {/* Info */}
         <div className="p-3">
           <h3 className="text-sm font-semibold text-gray-800 truncate group-hover:text-red-600 transition-colors">
-            {product.title}
+            {title}
           </h3>
 
           <p className="text-lg font-bold text-red-600 mt-1">
@@ -58,13 +72,15 @@ export default function ProductCard({ product }: ProductCardProps) {
           </p>
 
           <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-            <span>📍 {product.provinces?.name}</span>
-            <span>{product.categories?.icon} {product.categories?.name}</span>
+            <span>{locationLabel ? `📍 ${locationLabel}` : ''}</span>
+            <span>{categoryLabel}</span>
           </div>
 
-          <div className="mt-2 text-xs text-gray-400">
-            👤 {product.profiles?.username}
-          </div>
+          {ownerLabel && (
+            <div className="mt-2 text-xs text-gray-400">
+              👤 {ownerLabel}
+            </div>
+          )}
         </div>
       </div>
     </Link>

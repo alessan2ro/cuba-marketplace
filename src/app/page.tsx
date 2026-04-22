@@ -4,7 +4,7 @@ import Footer from '@/components/ui/Footer';
 import ProductCard from '@/components/ui/ProductCard';
 import AdsBanner from '@/components/ui/AdsBanner';
 import Link from 'next/link';
-import { Product, Category, Province } from '@/types';
+import { StoreProduct, Category, Province } from '@/types';
 import { MapPin, Package, ChevronRight, Search, Store, ShoppingBag } from 'lucide-react';
 
 export default async function HomePage() {
@@ -13,9 +13,25 @@ export default async function HomePage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   const { data: products } = await supabase
-    .from('products')
-    .select(`*, profiles(username), categories(name, icon),
-      provinces(name), product_images(image_url, is_main)`)
+    .from('store_products')
+    .select(`
+      id,
+      store_id,
+      seller_id,
+      name,
+      description,
+      category,
+      quantity,
+      price,
+      has_discount,
+      original_price,
+      status,
+      specifications,
+      created_at,
+      updated_at,
+      stores(id, name),
+      store_product_images(image_url, is_main)
+    `)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(12);
@@ -34,52 +50,7 @@ export default async function HomePage() {
 
       <main style={{ flex: 1 }}>
 
-        {/* Hero */}
-        <section style={{ background: 'var(--primary)', padding: '3rem 1rem' }}>
-          <div style={{ maxWidth: '80rem', margin: '0 auto', textAlign: 'center' }}>
-            <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 3rem)', fontWeight: 800, color: '#fff', marginBottom: '0.75rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-              Compra y Vende en Cuba
-            </h1>
-            <p style={{ color: 'var(--primary-muted)', fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', marginBottom: '2rem' }}>
-              Encuentra lo que necesitas en tu provincia
-            </p>
-            {!user && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
-                <Link
-                  href="/register"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                    background: 'var(--accent)', color: '#fff',
-                    padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)',
-                    fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
-                  }}
-                >
-                  <Store size={16} /> Publicar anuncio
-                </Link>
-                <Link
-                  href="/login"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                    border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff',
-                    padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)',
-                    fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
-                  }}
-                >
-                  <ShoppingBag size={16} /> Iniciar sesión
-                </Link>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Banner publicidad */}
-        {ads && ads.length > 0 && (
-          <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '1.5rem 1rem 0' }}>
-            <AdsBanner ads={ads} />
-          </div>
-        )}
-
-        {/* Categorías - scroll horizontal sin romper layout */}
+          {/* Categorías - scroll horizontal sin romper layout */}
         <section style={{ padding: '1.5rem 0' }}>
           <div style={{ maxWidth: '80rem', margin: '0 auto', paddingLeft: '1rem' }}>
             <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -147,6 +118,53 @@ export default async function HomePage() {
           </div>
         </section>
 
+
+        {/* Hero */}
+        <section style={{ background: 'var(--primary)', padding: '3rem 1rem' }}>
+          <div style={{ maxWidth: '80rem', margin: '0 auto', textAlign: 'center' }}>
+            <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 3rem)', fontWeight: 800, color: '#fff', marginBottom: '0.75rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              Compra y Vende en Cuba
+            </h1>
+            <p style={{ color: 'var(--primary-muted)', fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', marginBottom: '2rem' }}>
+              Encuentra lo que necesitas en tu provincia
+            </p>
+            {!user && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
+                <Link
+                  href="/register"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    background: 'var(--accent)', color: '#fff',
+                    padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)',
+                    fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
+                  }}
+                >
+                  <Store size={16} /> Publicar anuncio
+                </Link>
+                <Link
+                  href="/login"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff',
+                    padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)',
+                    fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
+                  }}
+                >
+                  <ShoppingBag size={16} /> Iniciar sesión
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Banner publicidad */}
+        {ads && ads.length > 0 && (
+          <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '1.5rem 1rem 0' }}>
+            <AdsBanner ads={ads} />
+          </div>
+        )}
+
+      
         {/* Provincias */}
         <section style={{ maxWidth: '80rem', margin: '0 auto', padding: '0 1rem 1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
@@ -218,7 +236,7 @@ export default async function HomePage() {
             }}
               className="md-grid-3 lg-grid-4"
             >
-              {products.map((product: Product) => (
+              {products.map((product: StoreProduct) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
