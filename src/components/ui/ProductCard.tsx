@@ -12,14 +12,15 @@ export default function ProductCard({ product }: ProductCardProps) {
     : product.product_images?.find(img => img.is_main) || product.product_images?.[0];
   const title = isStoreProduct ? product.name : product.title;
   const href = isStoreProduct ? `/store/${product.store_id}` : `/products/${product.id}`;
+  const storeInfo = isStoreProduct ? product.stores?.[0] : null;
   const locationLabel = isStoreProduct
-    ? product.stores?.name || 'Tienda'
+    ? storeInfo?.name || 'Tienda'
     : product.provinces?.name || '';
   const categoryLabel = isStoreProduct
     ? product.category || ''
     : `${product.categories?.icon || ''} ${product.categories?.name || ''}`.trim();
   const ownerLabel = isStoreProduct
-    ? product.stores?.name || ''
+    ? storeInfo?.name || ''
     : product.profiles?.username || '';
 
   const formatPrice = (price: number) => {

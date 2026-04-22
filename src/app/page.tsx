@@ -36,6 +36,8 @@ export default async function HomePage() {
     .order('created_at', { ascending: false })
     .limit(12);
 
+  const latestProducts = (products ?? []) as StoreProduct[];
+
   const { data: categories } = await supabase.from('categories').select('*');
   const { data: provinces } = await supabase.from('provinces').select('*');
   const { data: ads } = await supabase
@@ -228,7 +230,7 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {products && products.length > 0 ? (
+          {latestProducts.length > 0 ? (
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
@@ -236,7 +238,7 @@ export default async function HomePage() {
             }}
               className="md-grid-3 lg-grid-4"
             >
-              {products.map((product: StoreProduct) => (
+              {latestProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
