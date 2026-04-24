@@ -265,10 +265,6 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Eye size={13} />
             Ver
           </Link>
-          <button className="btn-comprar" onClick={e => e.preventDefault()}>
-            <ShoppingCart size={13} />
-            Comprar
-          </button>
         </div>
       </div>
     </div>

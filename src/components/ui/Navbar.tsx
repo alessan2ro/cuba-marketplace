@@ -5,35 +5,26 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Store, StoreProduct } from '@/types';
-const supabase = createClient();
 import SearchBar from './SearchBar';
-
 import {
   Plus, User, Package, Heart,
-  LogOut, Menu, X, ShoppingBag,
-  ChevronDown, LogIn
+  LogOut, Menu, X, Store, ShoppingBag,
+  ChevronDown
 } from 'lucide-react';
+
+const supabase = createClient();
 
 interface UserProfile {
   username: string;
   role: 'buyer' | 'seller';
 }
 
-interface Props {
-  store: Store;
-  initialProducts: StoreProduct[];
-  userId: string;
-}
-
-export default function Navbar({ store}: Props) {
-  const supabase = createClient();
+export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
 
   useEffect(() => {
     const getUser = async () => {
@@ -59,7 +50,6 @@ export default function Navbar({ store}: Props) {
     return () => { listener.subscription.unsubscribe(); };
   }, []);
 
-  // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -83,127 +73,103 @@ export default function Navbar({ store}: Props) {
       background: 'var(--surface)',
       borderBottom: '1px solid var(--border)',
       boxShadow: 'var(--shadow-sm)',
-    }} className="sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3">
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+    }}>
+      <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '0.75rem 1rem' }}>
 
         {/* Fila principal */}
-        <div className="flex items-center justify-between gap-4">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
 
           {/* Logo */}
-          <Link href="/" className="logo">
-            <Image
-              src="/images/logo.png"
-              alt="Mercacentro"
-              width={32}
-              height={32}
-              priority
-            />
+          <Link href="/" className="logo" style={{ fontSize: '1.25rem' }}>
+            <Image src="/images/logo.png" alt="Mercacentro" width={30} height={30} priority />
             Mercacentro
           </Link>
 
           {/* SearchBar escritorio */}
-          <div className="hidden md:flex flex-1 max-w-2xl">
+          <div style={{ flex: 1, maxWidth: '36rem', display: 'none' }} className="desktop-search">
+            <style>{`.desktop-search { display: none; } @media(min-width: 768px){ .desktop-search { display: block !important; } }`}</style>
             <SearchBar />
           </div>
 
           {/* Acciones escritorio */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="desktop-nav" style={{ display: 'none', alignItems: 'center', gap: '0.75rem' }}>
+            <style>{`.desktop-nav { display: none; } @media(min-width: 768px){ .desktop-nav { display: flex !important; } }`}</style>
+
             {user ? (
               <>
                 {user.role === 'seller' && (
-                  <Link
-                    href={`/seller/store/${store.id}/products/new`}
-                    className="btn-primary"
-                    style={{ padding: '0.5rem 1rem' }}
-                  >
-                    <Plus size={15} />
-                    Publicar
+                  <Link href="/seller/store" className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                    <Plus size={15} /> Publicar
                   </Link>
                 )}
 
-                {/* Dropdown usuario */}
-                <div className="relative" ref={dropdownRef}>
+                <div style={{ position: 'relative' }} ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all"
                     style={{
-                      background: 'var(--surface-2)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text-primary)',
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.5rem 0.75rem', borderRadius: 'var(--radius)',
+                      background: 'var(--surface-2)', border: '1px solid var(--border)',
+                      cursor: 'pointer', color: 'var(--text-primary)',
                     }}
                   >
-                    <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                      style={{ background: 'var(--primary)' }}
-                    >
+                    <div style={{
+                      width: '1.75rem', height: '1.75rem', borderRadius: '50%',
+                      background: 'var(--primary)', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                      color: '#fff', fontSize: '0.75rem', fontWeight: 700,
+                    }}>
                       {user.username.charAt(0).toUpperCase()}
                     </div>
-                    <span className="text-sm font-medium">{user.username}</span>
-                    <ChevronDown
-                      size={14}
-                      style={{
-                        color: 'var(--text-muted)',
-                        transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
-                        transition: 'transform 0.2s',
-                      }}
-                    />
+                    <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{user.username}</span>
+                    <ChevronDown size={14} style={{
+                      color: 'var(--text-muted)',
+                      transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
+                      transition: 'transform 0.2s',
+                    }} />
                   </button>
 
                   {dropdownOpen && (
-                    <div
-                      className="absolute right-0 mt-2 w-52 rounded-xl py-1 z-50"
-                      style={{
-                        background: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                        boxShadow: 'var(--shadow-lg)',
-                      }}
-                    >
-                      {/* Header dropdown */}
-                      <div
-                        className="px-4 py-3"
-                        style={{ borderBottom: '1px solid var(--border)' }}
-                      >
-                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                          Conectado como
-                        </p>
-                        <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    <div style={{
+                      position: 'absolute', right: 0, top: 'calc(100% + 0.5rem)',
+                      width: '13rem', background: 'var(--surface)',
+                      border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)',
+                      boxShadow: 'var(--shadow-lg)', zIndex: 50, overflow: 'hidden',
+                    }}>
+                      <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
+                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>Conectado como</p>
+                        <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0.1rem 0 0' }}>
                           {user.username}
                         </p>
-                        <div className="flex items-center gap-1 mt-0.5">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.2rem' }}>
                           {user.role === 'seller'
-                            ? <Plus size={11} style={{ color: 'var(--accent)' }} />
-                            : <LogIn size={11} style={{ color: 'var(--accent)' }} />
+                            ? <Store size={11} style={{ color: 'var(--accent)' }} />
+                            : <ShoppingBag size={11} style={{ color: 'var(--accent)' }} />
                           }
-                          <p className="text-xs font-medium" style={{ color: 'var(--accent)' }}>
+                          <p style={{ fontSize: '0.7rem', color: 'var(--accent)', margin: 0, fontWeight: 500 }}>
                             {user.role === 'seller' ? 'Vendedor' : 'Comprador'}
                           </p>
                         </div>
                       </div>
 
-                      {/* Links */}
                       {[
-                        {
-                          href: user.role === 'seller' ? '/dashboard' : '/profile',
-                          icon: <User size={14} />,
-                          label: 'Mi perfil',
-                        },
-                        ...(user.role === 'seller' ? [{
-                          href: '/dashboard',
-                          icon: <Package size={14} />,
-                          label: 'Mis anuncios',
-                        }] : []),
-                        {
-                          href: '/favorites',
-                          icon: <Heart size={14} />,
-                          label: 'Favoritos',
-                        },
+                        { href: user.role === 'seller' ? '/dashboard' : '/profile', icon: <User size={14} />, label: 'Mi perfil' },
+                        { href: '/favorites', icon: <Heart size={14} />, label: 'Favoritos' },
+                        ...(user.role === 'seller' ? [{ href: '/dashboard', icon: <Package size={14} />, label: 'Mis anuncios' }] : []),
                       ].map(item => (
                         <Link
-                          key={item.href + item.label}
+                          key={item.label}
                           href={item.href}
                           onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors"
-                          style={{ color: 'var(--text-secondary)' }}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.625rem',
+                            padding: '0.625rem 1rem', fontSize: '0.85rem',
+                            color: 'var(--text-secondary)', textDecoration: 'none',
+                            transition: 'background 0.15s',
+                          }}
                           onMouseEnter={e => {
                             (e.currentTarget as HTMLElement).style.background = 'var(--primary-light)';
                             (e.currentTarget as HTMLElement).style.color = 'var(--primary)';
@@ -213,26 +179,24 @@ export default function Navbar({ store}: Props) {
                             (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
                           }}
                         >
-                          {item.icon}
-                          {item.label}
+                          {item.icon} {item.label}
                         </Link>
                       ))}
 
-                      {/* Logout */}
-                      <div style={{ borderTop: '1px solid var(--border)', marginTop: '0.25rem' }}>
+                      <div style={{ borderTop: '1px solid var(--border)' }}>
                         <button
                           onClick={handleLogout}
-                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm transition-colors"
-                          style={{ color: 'var(--error)' }}
-                          onMouseEnter={e => {
-                            (e.currentTarget as HTMLElement).style.background = '#fef2f2';
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.625rem',
+                            width: '100%', padding: '0.625rem 1rem',
+                            fontSize: '0.85rem', color: 'var(--error)',
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            textAlign: 'left',
                           }}
-                          onMouseLeave={e => {
-                            (e.currentTarget as HTMLElement).style.background = 'transparent';
-                          }}
+                          onMouseEnter={e => (e.currentTarget.style.background = '#fef2f2')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
-                          <LogOut size={14} />
-                          Cerrar sesión
+                          <LogOut size={14} /> Cerrar sesión
                         </button>
                       </div>
                     </div>
@@ -243,14 +207,11 @@ export default function Navbar({ store}: Props) {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-medium transition-colors"
-                  style={{ color: 'var(--text-secondary)' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--primary)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                  style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
                 >
                   Iniciar sesión
                 </Link>
-                <Link href="/register" className="btn-primary" style={{ padding: '0.5rem 1rem' }}>
+                <Link href="/register" className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
                   Registrarse
                 </Link>
               </>
@@ -259,55 +220,41 @@ export default function Navbar({ store}: Props) {
 
           {/* Botón menú móvil */}
           <button
-            className="md:hidden p-2 rounded-lg transition-colors"
-            style={{ color: 'var(--text-secondary)', background: 'var(--surface-2)' }}
+            className="mobile-menu-btn"
             onClick={() => setMenuOpen(!menuOpen)}
+            style={{ padding: '0.5rem', borderRadius: 'var(--radius)', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', cursor: 'pointer' }}
           >
+            <style>{`.mobile-menu-btn { display: flex; } @media(min-width: 768px){ .mobile-menu-btn { display: none !important; } }`}</style>
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
         {/* SearchBar móvil */}
-        <div className="mt-3 md:hidden">
+        <div className="mobile-search" style={{ marginTop: '0.75rem' }}>
+          <style>{`.mobile-search { display: block; } @media(min-width: 768px){ .mobile-search { display: none !important; } }`}</style>
           <SearchBar />
         </div>
 
         {/* Menú móvil */}
         {menuOpen && (
-          <div
-            className="md:hidden mt-3 pt-3 flex flex-col gap-1"
-            style={{ borderTop: '1px solid var(--border)' }}
-          >
+          <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             {user ? (
               <>
-                <div
-                  className="flex items-center gap-3 px-2 py-3 rounded-lg mb-1"
-                  style={{ background: 'var(--surface-2)' }}
-                >
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold"
-                    style={{ background: 'var(--primary)' }}
-                  >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: 'var(--radius)', background: 'var(--surface-2)', marginBottom: '0.5rem' }}>
+                  <div style={{ width: '2.25rem', height: '2.25rem', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, flexShrink: 0 }}>
                     {user.username.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                      {user.username}
-                    </p>
-                    <p className="text-xs" style={{ color: 'var(--accent)' }}>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{user.username}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--accent)', margin: 0 }}>
                       {user.role === 'seller' ? 'Vendedor' : 'Comprador'}
                     </p>
                   </div>
                 </div>
 
                 {user.role === 'seller' && (
-                  <Link
-                    href={`/seller/store/${store.id}/products/new`}
-                    className="btn-primary justify-center"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <Plus size={15} />
-                    Publicar anuncio
+                  <Link href="/seller/store" className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                    <Plus size={15} /> Publicar
                   </Link>
                 )}
 
@@ -315,33 +262,21 @@ export default function Navbar({ store}: Props) {
                   { href: user.role === 'seller' ? '/dashboard' : '/profile', icon: <User size={15} />, label: 'Mi perfil' },
                   { href: '/favorites', icon: <Heart size={15} />, label: 'Favoritos' },
                 ].map(item => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="nav-link"
-                  >
-                    {item.icon}
-                    {item.label}
+                  <Link key={item.label} href={item.href} className="nav-link" onClick={() => setMenuOpen(false)}>
+                    {item.icon} {item.label}
                   </Link>
                 ))}
 
-                <button
-                  onClick={handleLogout}
-                  className="nav-link w-full text-left mt-1"
-                  style={{ color: 'var(--error)' }}
-                >
-                  <LogOut size={15} />
-                  Cerrar sesión
+                <button onClick={handleLogout} className="nav-link" style={{ color: 'var(--error)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', marginTop: '0.25rem' }}>
+                  <LogOut size={15} /> Cerrar sesión
                 </button>
               </>
             ) : (
               <>
                 <Link href="/login" className="nav-link" onClick={() => setMenuOpen(false)}>
-                  <User size={15} />
-                  Iniciar sesión
+                  <User size={15} /> Iniciar sesión
                 </Link>
-                <Link href="/register" className="btn-primary justify-center mt-1" onClick={() => setMenuOpen(false)}>
+                <Link href="/register" className="btn-primary" style={{ justifyContent: 'center', marginTop: '0.25rem' }} onClick={() => setMenuOpen(false)}>
                   Registrarse
                 </Link>
               </>

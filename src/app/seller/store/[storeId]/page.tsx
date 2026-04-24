@@ -35,4 +35,6 @@ export default async function StoreProductsPage({ params }: Props) {
       userId={user.id}
     />
   );
+
+
 }

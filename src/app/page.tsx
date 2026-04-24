@@ -121,44 +121,6 @@ export default async function HomePage() {
         </section>
 
 
-        {/* Hero */}
-        <section style={{ background: 'var(--primary)', padding: '3rem 1rem' }}>
-          <div style={{ maxWidth: '80rem', margin: '0 auto', textAlign: 'center' }}>
-            <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 3rem)', fontWeight: 800, color: '#fff', marginBottom: '0.75rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-              Compra y Vende en Cuba
-            </h1>
-            <p style={{ color: 'var(--primary-muted)', fontSize: 'clamp(0.9rem, 2vw, 1.1rem)', marginBottom: '2rem' }}>
-              Encuentra lo que necesitas en tu provincia
-            </p>
-            {!user && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
-                <Link
-                  href="/register"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                    background: 'var(--accent)', color: '#fff',
-                    padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)',
-                    fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
-                  }}
-                >
-                  <Store size={16} /> Publicar anuncio
-                </Link>
-                <Link
-                  href="/login"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                    border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff',
-                    padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)',
-                    fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
-                  }}
-                >
-                  <ShoppingBag size={16} /> Iniciar sesión
-                </Link>
-              </div>
-            )}
-          </div>
-        </section>
-
         {/* Banner publicidad */}
         {ads && ads.length > 0 && (
           <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '1.5rem 1rem 0' }}>
@@ -257,7 +219,7 @@ export default async function HomePage() {
               <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
                 ¡Sé el primero en publicar!
               </p>
-              <Link href="/register" className="btn-primary">
+              <Link href="/login" className="btn-primary">
                 Publicar ahora
               </Link>
             </div>

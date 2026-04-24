@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {
     ArrowLeft, Store, Tag, Package,
     MapPin, Clock, ShoppingCart, Star,
-    CheckCircle, Truck
+    CheckCircle, Truck, Phone
 } from 'lucide-react';
 import { StoreProduct, StoreProductImage, Store as StoreType } from '@/types';
 
@@ -204,6 +204,8 @@ export default async function ProductDetailPage({ params }: Props) {
                                     Agotado
                                 </span>
                             )}
+
+
                         </div>
 
                         {/* Nombre */}
@@ -238,6 +240,22 @@ export default async function ProductDetailPage({ params }: Props) {
                                     ? `${product.quantity} unidad${product.quantity !== 1 ? 'es' : ''} disponible${product.quantity !== 1 ? 's' : ''}`
                                     : 'Sin stock'}
                             </p>
+
+                            {/* Delivery */}
+                            {store.delivery && (
+                                <span style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                                    fontSize: '0.7rem', fontWeight: 600,
+                                    padding: '0.2rem 0.6rem', borderRadius: '999px',
+                                    background: 'var(--accent-light)', color: 'var(--accent)',
+                                    border: '1px solid var(--accent-light)',
+                                }}>
+                                    <Truck size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                                    <span style={{ fontSize: '0.8rem', background: 'var(--accent-light', color: 'var(--text-secondary)' }}>Envío a domicilio</span>
+                                </span>
+                            )}
+
+
                         </div>
 
                         {/* Descripción */}
@@ -297,6 +315,173 @@ export default async function ProductDetailPage({ params }: Props) {
                             </div>
                         )}
 
+                        {/* Info de la tienda */}
+                        {store && (
+                            <div style={{
+                                marginTop: '2rem',
+                                background: 'var(--surface)',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-lg)',
+                                overflow: 'hidden',
+                            }}>
+                                <div style={{
+                                    padding: '1rem 1.25rem',
+                                    borderBottom: '1px solid var(--border)',
+                                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                }}>
+                                    <Store size={16} style={{ color: 'var(--accent)' }} />
+                                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                        Vendedor
+                                    </span>
+                                </div>
+
+                                <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+                                    {/* Nombre y verificación */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        {store.image_url ? (
+                                            <img
+                                                src={store.image_url}
+                                                alt={store.name}
+                                                style={{ width: '2rem', height: '2rem', borderRadius: 'var(--radius)', objectFit: 'cover', flexShrink: 0 }}
+                                            />
+                                        ) : (
+                                            <div style={{
+                                                width: '2rem', height: '2rem',
+                                                borderRadius: 'var(--radius)',
+                                                background: 'var(--primary-light)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                flexShrink: 0,
+                                            }}>
+                                                <Store size={20} style={{ color: 'var(--primary)' }} />
+                                            </div>
+                                        )}
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                                    {store.name}
+                                                </span>
+                                                {store.is_verified && (
+                                                    <span style={{
+                                                        display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                                                        fontSize: '0.65rem', fontWeight: 600,
+                                                        padding: '0.15rem 0.5rem', borderRadius: '999px',
+                                                        background: '#eff6ff', color: '#1d4ed8',
+                                                        border: '1px solid #bfdbfe',
+                                                    }}>
+                                                        <CheckCircle size={10} />
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {store.rating_count > 0 && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.2rem' }}>
+                                                    <Star size={12} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
+                                                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                                        {store.rating_avg}
+                                                    </span>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                        ({store.rating_count} valoraciones)
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Detalles */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                        {store.address && (
+                                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                                                <MapPin size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '0.1rem' }} />
+                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{store.address}</span>
+                                            </div>
+                                        )}
+
+                                        {store.phones && store.phones.length > 0 && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                 <Phone size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '0.1rem' }} />
+                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                                    {store.phones.join(' · ')}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Métodos de pago y moneda */}
+                                    {((store.payment_methods && store.payment_methods.length > 0) ||
+                                        (store.currency && store.currency.length > 0)) && (
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                                                {store.payment_methods?.map(m => (
+                                                    <span key={m} style={{
+                                                        fontSize: '0.7rem', fontWeight: 500,
+                                                        padding: '0.2rem 0.6rem', borderRadius: '999px',
+                                                        background: 'var(--accent-light)', color: 'var(--accent)',
+                                                        border: '1px solid var(--accent-light)',
+                                                    }}>
+                                                        {m}
+                                                    </span>
+                                                ))}
+                                                {store.currency?.map(c => (
+                                                    <span key={c} style={{
+                                                        fontSize: '0.7rem', fontWeight: 600,
+                                                        padding: '0.2rem 0.6rem', borderRadius: '999px',
+                                                        background: 'var(--gold-light)', color: 'var(--gold)',
+                                                        border: '1px solid var(--gold-light)',
+                                                    }}>
+                                                        {c}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                    {/* Horario hoy */}
+                                    {store.schedule && Object.keys(store.schedule).length > 0 && (() => {
+                                        const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                                        const today = days[new Date().getDay()];
+                                        const todaySchedule = store.schedule[today];
+                                        return todaySchedule ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <Clock size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                                    Hoy ({today}):
+                                                </span>
+                                                <span style={{
+                                                    fontSize: '0.8rem', fontWeight: 600,
+                                                    color: todaySchedule.open ? 'var(--success)' : 'var(--error)',
+                                                }}>
+                                                    {todaySchedule.open
+                                                        ? `${todaySchedule.from} - ${todaySchedule.to}`
+                                                        : 'Cerrado'}
+                                                </span>
+                                            </div>
+                                        ) : null;
+                                    })()}
+
+                                    {/* Ir a la tienda */}
+                                    <Link
+                                        href={`/store/${storeId}`}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.5rem',
+                                            padding: '0.625rem 1rem',
+                                            borderRadius: 'var(--radius)',
+                                            fontSize: '0.85rem',
+                                            fontWeight: 600,
+                                            textDecoration: 'none',
+                                            background: 'var(--primary-light)',
+                                            color: 'var(--primary)',
+                                            border: '1px solid var(--primary-muted)',
+                                            alignSelf: 'flex-start',
+                                        }}
+                                    >
+                                        <Store size={15} />
+                                        Ver tienda
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Botón comprar */}
                         <button
                             style={{
@@ -321,177 +506,6 @@ export default async function ProductDetailPage({ params }: Props) {
                         </button>
                     </div>
                 </div>
-
-                {/* Info de la tienda */}
-                {store && (
-                    <div style={{
-                        marginTop: '2rem',
-                        background: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 'var(--radius-lg)',
-                        overflow: 'hidden',
-                    }}>
-                        <div style={{
-                            padding: '1rem 1.25rem',
-                            borderBottom: '1px solid var(--border)',
-                            display: 'flex', alignItems: 'center', gap: '0.5rem',
-                        }}>
-                            <Store size={16} style={{ color: 'var(--accent)' }} />
-                            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                                Información de la tienda
-                            </span>
-                        </div>
-
-                        <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
-                            {/* Nombre y verificación */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                {store.image_url ? (
-                                    <img
-                                        src={store.image_url}
-                                        alt={store.name}
-                                        style={{ width: '3rem', height: '3rem', borderRadius: 'var(--radius)', objectFit: 'cover', flexShrink: 0 }}
-                                    />
-                                ) : (
-                                    <div style={{
-                                        width: '3rem', height: '3rem',
-                                        borderRadius: 'var(--radius)',
-                                        background: 'var(--primary-light)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        flexShrink: 0,
-                                    }}>
-                                        <Store size={20} style={{ color: 'var(--primary)' }} />
-                                    </div>
-                                )}
-                                <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                        <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                                            {store.name}
-                                        </span>
-                                        {store.is_verified && (
-                                            <span style={{
-                                                display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                                                fontSize: '0.65rem', fontWeight: 600,
-                                                padding: '0.15rem 0.5rem', borderRadius: '999px',
-                                                background: '#eff6ff', color: '#1d4ed8',
-                                                border: '1px solid #bfdbfe',
-                                            }}>
-                                                <CheckCircle size={10} /> Verificado
-                                            </span>
-                                        )}
-                                    </div>
-                                    {store.rating_count > 0 && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.2rem' }}>
-                                            <Star size={12} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                                                {store.rating_avg}
-                                            </span>
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                                ({store.rating_count} valoraciones)
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Detalles */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                                {store.address && (
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                                        <MapPin size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '0.1rem' }} />
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{store.address}</span>
-                                    </div>
-                                )}
-                                {store.delivery && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <Truck size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Envío a domicilio</span>
-                                    </div>
-                                )}
-                                {store.phones && store.phones.length > 0 && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                            📞 {store.phones.join(' · ')}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Métodos de pago y moneda */}
-                            {((store.payment_methods && store.payment_methods.length > 0) ||
-                                (store.currency && store.currency.length > 0)) && (
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
-                                        {store.payment_methods?.map(m => (
-                                            <span key={m} style={{
-                                                fontSize: '0.7rem', fontWeight: 500,
-                                                padding: '0.2rem 0.6rem', borderRadius: '999px',
-                                                background: 'var(--accent-light)', color: 'var(--accent)',
-                                                border: '1px solid var(--accent-light)',
-                                            }}>
-                                                {m}
-                                            </span>
-                                        ))}
-                                        {store.currency?.map(c => (
-                                            <span key={c} style={{
-                                                fontSize: '0.7rem', fontWeight: 600,
-                                                padding: '0.2rem 0.6rem', borderRadius: '999px',
-                                                background: 'var(--gold-light)', color: 'var(--gold)',
-                                                border: '1px solid var(--gold-light)',
-                                            }}>
-                                                {c}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-
-                            {/* Horario hoy */}
-                            {store.schedule && Object.keys(store.schedule).length > 0 && (() => {
-                                const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-                                const today = days[new Date().getDay()];
-                                const todaySchedule = store.schedule[today];
-                                return todaySchedule ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <Clock size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                            Hoy ({today}):
-                                        </span>
-                                        <span style={{
-                                            fontSize: '0.8rem', fontWeight: 600,
-                                            color: todaySchedule.open ? 'var(--success)' : 'var(--error)',
-                                        }}>
-                                            {todaySchedule.open
-                                                ? `${todaySchedule.from} - ${todaySchedule.to}`
-                                                : 'Cerrado'}
-                                        </span>
-                                    </div>
-                                ) : null;
-                            })()}
-
-                            {/* Ir a la tienda */}
-                            <Link
-                                href={`/store/${storeId}`}
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.625rem 1rem',
-                                    borderRadius: 'var(--radius)',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 600,
-                                    textDecoration: 'none',
-                                    background: 'var(--primary-light)',
-                                    color: 'var(--primary)',
-                                    border: '1px solid var(--primary-muted)',
-                                    alignSelf: 'flex-start',
-                                }}
-                            >
-                                <Store size={15} />
-                                Ver tienda completa
-                            </Link>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );
