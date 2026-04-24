@@ -1,5 +1,5 @@
 import Link from 'next/link'
-
+import { Unlink } from 'lucide-react';
 
 export default function NotFound() {
     return (
@@ -13,6 +13,23 @@ export default function NotFound() {
             padding: '2rem 1rem',
             textAlign: 'center',
         }}>
+
+            {/* Icono */}
+            <div style={{
+                width: '6rem',
+                height: '6rem',
+                borderRadius: '50%',
+                background: 'var(--primary-light)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1.5rem',
+            }}>
+
+                <Unlink size={64} color='var(--primary)' />
+
+            </div>
+
 
             {/* Codigo de error */}
             <p style={{
