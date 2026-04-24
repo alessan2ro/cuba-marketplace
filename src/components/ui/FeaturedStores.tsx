@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { CheckCircle, Store } from 'lucide-react';
+import { BadgeCheck, Store } from 'lucide-react';
 
 interface FeaturedStore {
   id: string;
@@ -25,15 +25,6 @@ export default function FeaturedStores({ stores }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
           <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Tiendas recomendadas
-          </span>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
-            fontSize: '0.65rem', fontWeight: 600,
-            padding: '0.15rem 0.5rem', borderRadius: '999px',
-            background: '#eff6ff', color: '#1d4ed8',
-            border: '1px solid #bfdbfe',
-          }}>
-            <CheckCircle size={9} /> Verificadas
           </span>
         </div>
       </div>
@@ -103,7 +94,7 @@ export default function FeaturedStores({ stores }: Props) {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
-                  <CheckCircle size={8} color="white" />
+                  <BadgeCheck size={8} color="white" />
                 </div>
               )}
             </div>
