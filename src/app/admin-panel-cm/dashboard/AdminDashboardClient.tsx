@@ -15,7 +15,6 @@ interface Seller {
     seller_account: boolean;
 }
 
-
 interface Ad {
     id: number;
     image_url: string;
@@ -25,11 +24,21 @@ interface Ad {
     order_index: number;
 }
 
-type TabType = 'pending' | 'active' | 'sellers' | 'ads';
+interface StoreAdmin {
+    id: string;
+    name: string;
+    is_verified: boolean;
+    seller_id: string;
+    created_at: string;
+    profiles: { username: string } | null;
+}
+
+type TabType = 'pending' | 'active' | 'sellers' | 'stores' | 'ads';
 
 export default function AdminDashboardClient({ adminName }: { adminName: string }) {
     const router = useRouter();
     const [sellers, setSellers] = useState<Seller[]>([]);
+    const [stores, setStores] = useState<StoreAdmin[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>('pending');
@@ -37,15 +46,78 @@ export default function AdminDashboardClient({ adminName }: { adminName: string 
     const [deleteModal, setDeleteModal] = useState<Seller | null>(null);
     const [months, setMonths] = useState(1);
     const [ads, setAds] = useState<Ad[]>([]);
-    const [adForm, setAdForm] = useState({
-        image_url: '', description: '', target_url: '', order_index: 0
-    });
+    const [adForm, setAdForm] = useState({ image_url: '', description: '', target_url: '', order_index: 0 });
     const [adLoading, setAdLoading] = useState(false);
 
     const loadAds = async () => {
         const res = await fetch('/api/admin/ads');
         const { data } = await res.json();
         setAds(data || []);
+    };
+
+    const loadStores = async () => {
+        const res = await fetch('/api/admin/stores');
+        const { data } = await res.json();
+        setStores(data || []);
+    };
+
+    useEffect(() => {
+        let cancelled = false;
+        const loadAll = async () => {
+            const res = await fetch('/api/admin/subscriptions');
+            if (cancelled) return;
+            if (res.status === 401) { router.push('/admin-panel-cm/login'); return; }
+            const { data } = await res.json();
+            if (!cancelled) {
+                setSellers(data || []);
+                await loadAds();
+                await loadStores();
+                setLoading(false);
+            }
+        };
+        loadAll();
+        return () => { cancelled = true; };
+    }, [router]);
+
+    const reloadSellers = async () => {
+        const res = await fetch('/api/admin/subscriptions');
+        const { data } = await res.json();
+        setSellers(data || []);
+    };
+
+    const handleAction = async (userId: string, action: 'activate' | 'deny' | 'deactivate', m?: number) => {
+        setActionLoading(userId + action);
+        await fetch('/api/admin/subscriptions', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, action, months: m }),
+        });
+        await reloadSellers();
+        setActionLoading(null);
+        setActivateModal(null);
+    };
+
+    const handleDelete = async (userId: string) => {
+        setActionLoading(userId + 'delete');
+        await fetch('/api/admin/subscriptions', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId }),
+        });
+        await reloadSellers();
+        setActionLoading(null);
+        setDeleteModal(null);
+    };
+
+    const handleToggleVerified = async (storeId: string, current: boolean) => {
+        setActionLoading(storeId + 'verify');
+        await fetch('/api/admin/stores', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ storeId, is_verified: !current }),
+        });
+        await loadStores();
+        setActionLoading(null);
     };
 
     const handleCreateAd = async () => {
@@ -78,60 +150,6 @@ export default function AdminDashboardClient({ adminName }: { adminName: string 
         await loadAds();
     };
 
-    useEffect(() => {
-        let cancelled = false;
-        const loadSellers = async () => {
-            const res = await fetch('/api/admin/subscriptions');
-            if (cancelled) return;
-            if (res.status === 401) {
-                router.push('/admin-panel-cm/login');
-                return;
-            }
-            const { data } = await res.json();
-            if (!cancelled) {
-                setSellers(data || []);
-                await loadAds();
-                setLoading(false);
-            }
-        };
-        loadSellers();
-        return () => { cancelled = true; };
-    }, [router]);
-
-    const reloadSellers = async () => {
-        const res = await fetch('/api/admin/subscriptions');
-        const { data } = await res.json();
-        setSellers(data || []);
-    };
-
-    const handleAction = async (
-        userId: string,
-        action: 'activate' | 'deny' | 'deactivate',
-        m?: number
-    ) => {
-        setActionLoading(userId + action);
-        await fetch('/api/admin/subscriptions', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, action, months: m }),
-        });
-        await reloadSellers();
-        setActionLoading(null);
-        setActivateModal(null);
-    };
-
-    const handleDelete = async (userId: string) => {
-        setActionLoading(userId + 'delete');
-        await fetch('/api/admin/subscriptions', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId }),
-        });
-        await reloadSellers();
-        setActionLoading(null);
-        setDeleteModal(null);
-    };
-
     const handleLogout = async () => {
         await fetch('/api/admin/logout', { method: 'POST' });
         router.push('/admin-panel-cm/login');
@@ -139,400 +157,453 @@ export default function AdminDashboardClient({ adminName }: { adminName: string 
 
     const pending = sellers.filter(s => s.subscription_status === 'pending');
     const active = sellers.filter(s => s.subscription_status === 'active');
-
-    const formatDate = (d: string | null) =>
-        d ? new Date(d).toLocaleDateString('es-CU') : '—';
-
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text).catch(console.error);
-    };
+    const formatDate = (d: string | null) => d ? new Date(d).toLocaleDateString('es-CU') : '—';
+    const copyToClipboard = (text: string) => navigator.clipboard.writeText(text).catch(console.error);
 
     const tabs: { key: TabType; label: string; count?: number }[] = [
         { key: 'pending', label: 'Pendientes', count: pending.length },
         { key: 'active', label: 'Activas', count: active.length },
         { key: 'sellers', label: 'Vendedores', count: sellers.length },
-        { key: 'ads', label: 'Publicidad', count: undefined },
+        { key: 'stores', label: 'Tiendas', count: stores.length },
+        { key: 'ads', label: 'Publicidad' },
     ];
 
+    // Estilos reutilizables
+    const card = { background: '#111827', border: '1px solid #1f2937', borderRadius: '0.75rem', overflow: 'hidden' as const };
+    const th = { padding: '0.75rem 1rem', fontSize: '0.7rem', color: '#6b7280', fontWeight: 500, textAlign: 'left' as const, borderBottom: '1px solid #1f2937', whiteSpace: 'nowrap' as const };
+    const td = { padding: '0.875rem 1rem', fontSize: '0.8rem', verticalAlign: 'middle' as const };
+    const row = { borderBottom: '1px solid rgba(31,41,55,0.5)' };
+
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
+        <div style={{ minHeight: '100vh', background: '#030712', color: '#f9fafb' }}>
 
             {/* Topbar */}
-            <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <header style={{ background: '#111827', borderBottom: '1px solid #1f2937', padding: '0.875rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 40 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ width: '2rem', height: '2rem', background: '#dc2626', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" />
                             <path d="M7 11V7a5 5 0 0110 0v4" />
                         </svg>
                     </div>
                     <div>
-                        <p className="text-sm font-semibold text-white">CubaMarket Admin</p>
-                        <p className="text-xs text-gray-500">{adminName}</p>
+                        <p style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0, color: '#fff' }}>Admin</p>
+                        <p style={{ fontSize: '0.7rem', color: '#6b7280', margin: 0 }}>{adminName}</p>
                     </div>
                 </div>
-                <button
-                    onClick={handleLogout}
-                    className="text-xs text-gray-400 hover:text-red-400 transition flex items-center gap-1.5"
-                >
-                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <button onClick={handleLogout} style={{ fontSize: '0.75rem', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M10 8H2M6 5l-3 3 3 3M10 3h3a1 1 0 011 1v8a1 1 0 01-1 1h-3" />
                     </svg>
                     Salir
                 </button>
             </header>
 
-            <main className="max-w-5xl mx-auto px-6 py-8">
+            <main style={{ maxWidth: '64rem', margin: '0 auto', padding: '1.5rem 1rem 4rem' }}>
 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 mb-8">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
                     {[
-                        { label: 'Pendientes', value: pending.length, color: 'text-yellow-400' },
-                        { label: 'Activas', value: active.length, color: 'text-green-400' },
-                        { label: 'Total vendedores', value: sellers.length, color: 'text-blue-400' },
+                        { label: 'Pendientes', value: pending.length, color: '#facc15' },
+                        { label: 'Activas', value: active.length, color: '#4ade80' },
+                        { label: 'Vendedores', value: sellers.length, color: '#60a5fa' },
                     ].map(stat => (
-                        <div key={stat.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                            <p className="text-xs text-gray-500 mb-1">{stat.label}</p>
-                            <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                        <div key={stat.label} style={{ ...card, padding: '1rem' }}>
+                            <p style={{ fontSize: '0.7rem', color: '#6b7280', margin: '0 0 0.25rem' }}>{stat.label}</p>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 700, color: stat.color, margin: 0 }}>{stat.value}</p>
                         </div>
                     ))}
                 </div>
 
-                {/* Tabs */}
-                <div className="flex gap-2 mb-6">
+                {/* Tabs - scroll horizontal en móvil */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', overflowX: 'auto', paddingBottom: '0.25rem', scrollbarWidth: 'none' }}>
                     {tabs.map(tab => (
                         <button
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === tab.key
-                                ? 'bg-red-600 text-white'
-                                : 'bg-gray-900 text-gray-400 hover:text-white border border-gray-800'
-                                }`}
+                            style={{
+                                flexShrink: 0,
+                                padding: '0.5rem 0.875rem',
+                                borderRadius: '0.5rem',
+                                fontSize: '0.8rem',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                border: activeTab === tab.key ? 'none' : '1px solid #1f2937',
+                                background: activeTab === tab.key ? '#dc2626' : '#111827',
+                                color: activeTab === tab.key ? '#fff' : '#9ca3af',
+                                whiteSpace: 'nowrap',
+                            }}
                         >
-                            {tab.label} ({tab.count})
+                            {tab.label}{tab.count !== undefined ? ` (${tab.count})` : ''}
                         </button>
                     ))}
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-20 text-gray-600">Cargando...</div>
+                    <div style={{ textAlign: 'center', padding: '4rem', color: '#4b5563' }}>Cargando...</div>
                 ) : (
                     <>
-                        {/* Pendientes */}
+                        {/* ── Pendientes ── */}
                         {activeTab === 'pending' && (
-                            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                            <div style={card}>
                                 {pending.length === 0 ? (
-                                    <div className="text-center py-16 text-gray-600">No hay solicitudes pendientes</div>
+                                    <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563' }}>No hay solicitudes pendientes</div>
                                 ) : (
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b border-gray-800">
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Usuario</th>
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Correo</th>
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">ID</th>
-                                                <th className="text-right px-5 py-3 text-xs text-gray-500 font-medium">Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {pending.map(seller => (
-                                                <tr key={seller.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition">
-                                                    <td className="px-5 py-4">
-                                                        <p className="font-medium text-white">@{seller.username}</p>
-                                                        <p className="text-xs text-gray-500">{seller.full_name}</p>
-                                                    </td>
-                                                    <td className="px-5 py-4 text-gray-300">{seller.email}</td>
-                                                    <td className="px-5 py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-xs text-gray-500 font-mono">
-                                                                {seller.id.split('-')[0]}...
-                                                            </span>
-                                                            <button
-                                                                onClick={() => copyToClipboard(seller.id)}
-                                                                className="text-gray-600 hover:text-gray-300 transition"
-                                                                title="Copiar ID completo"
-                                                            >
-                                                                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                                    <rect x="5" y="5" width="9" height="9" rx="1" />
-                                                                    <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" />
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-5 py-4">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            <button
-                                                                onClick={() => handleAction(seller.id, 'deny')}
-                                                                disabled={actionLoading === seller.id + 'deny'}
-                                                                className="px-3 py-1.5 text-xs rounded-lg border border-red-800 text-red-400 hover:bg-red-950 transition disabled:opacity-50"
-                                                            >
-                                                                Denegar
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setActivateModal(seller)}
-                                                                className="px-3 py-1.5 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 transition"
-                                                            >
-                                                                Activar
-                                                            </button>
-                                                        </div>
-                                                    </td>
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={th}>Usuario</th>
+                                                    <th style={{ ...th, display: 'none' }} className="hide-mobile">Correo</th>
+                                                    <th style={th}>ID</th>
+                                                    <th style={{ ...th, textAlign: 'right' }}>Acciones</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                {pending.map(seller => (
+                                                    <tr key={seller.id} style={row}>
+                                                        <td style={td}>
+                                                            <p style={{ fontWeight: 600, color: '#fff', margin: '0 0 0.1rem' }}>@{seller.username}</p>
+                                                            <p style={{ fontSize: '0.7rem', color: '#6b7280', margin: 0 }}>{seller.full_name}</p>
+                                                            <p style={{ fontSize: '0.7rem', color: '#9ca3af', margin: '0.1rem 0 0' }}>{seller.email}</p>
+                                                        </td>
+                                                        <td style={td}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                                                                <span style={{ fontSize: '0.7rem', color: '#6b7280', fontFamily: 'monospace' }}>
+                                                                    {seller.id.split('-')[0]}...
+                                                                </span>
+                                                                <button onClick={() => copyToClipboard(seller.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', padding: 0 }} title="Copiar ID">
+                                                                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                                        <rect x="5" y="5" width="9" height="9" rx="1" />
+                                                                        <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ ...td, textAlign: 'right' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.375rem', flexWrap: 'wrap' }}>
+                                                                <button
+                                                                    onClick={() => handleAction(seller.id, 'deny')}
+                                                                    disabled={actionLoading === seller.id + 'deny'}
+                                                                    style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', borderRadius: '0.5rem', border: '1px solid #7f1d1d', color: '#f87171', background: 'none', cursor: 'pointer' }}
+                                                                >
+                                                                    Denegar
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setActivateModal(seller)}
+                                                                    style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', borderRadius: '0.5rem', border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer' }}
+                                                                >
+                                                                    Activar
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 )}
                             </div>
                         )}
 
-                        {/* Activas */}
+                        {/* ── Activas ── */}
                         {activeTab === 'active' && (
-                            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                            <div style={card}>
                                 {active.length === 0 ? (
-                                    <div className="text-center py-16 text-gray-600">No hay suscripciones activas</div>
+                                    <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563' }}>No hay suscripciones activas</div>
                                 ) : (
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b border-gray-800">
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Usuario</th>
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Correo</th>
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Inicio</th>
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Vence</th>
-                                                <th className="text-right px-5 py-3 text-xs text-gray-500 font-medium">Acción</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {active.map(seller => {
-                                                const isExpired = seller.subscription_end
-                                                    ? new Date(seller.subscription_end) < new Date()
-                                                    : false;
-                                                return (
-                                                    <tr key={seller.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition">
-                                                        <td className="px-5 py-4">
-                                                            <p className="font-medium text-white">@{seller.username}</p>
-                                                            <p className="text-xs text-gray-500">{seller.full_name}</p>
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={th}>Usuario</th>
+                                                    <th style={th}>Inicio</th>
+                                                    <th style={th}>Vence</th>
+                                                    <th style={{ ...th, textAlign: 'right' }}>Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {active.map(seller => {
+                                                    const expired = seller.subscription_end ? new Date(seller.subscription_end) < new Date() : false;
+                                                    return (
+                                                        <tr key={seller.id} style={row}>
+                                                            <td style={td}>
+                                                                <p style={{ fontWeight: 600, color: '#fff', margin: '0 0 0.1rem' }}>@{seller.username}</p>
+                                                                <p style={{ fontSize: '0.7rem', color: '#9ca3af', margin: 0 }}>{seller.email}</p>
+                                                            </td>
+                                                            <td style={{ ...td, color: '#9ca3af', fontSize: '0.75rem' }}>{formatDate(seller.subscription_start)}</td>
+                                                            <td style={td}>
+                                                                <span style={{ fontSize: '0.75rem', color: expired ? '#f87171' : '#4ade80' }}>
+                                                                    {formatDate(seller.subscription_end)}{expired && ' ⚠'}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ ...td, textAlign: 'right' }}>
+                                                                <button
+                                                                    onClick={() => handleAction(seller.id, 'deactivate')}
+                                                                    disabled={actionLoading === seller.id + 'deactivate'}
+                                                                    style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', borderRadius: '0.5rem', border: '1px solid #374151', color: '#9ca3af', background: 'none', cursor: 'pointer' }}
+                                                                >
+                                                                    Desactivar
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ── Vendedores ── */}
+                        {activeTab === 'sellers' && (
+                            <div style={card}>
+                                {sellers.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563' }}>No hay vendedores</div>
+                                ) : (
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={th}>Usuario</th>
+                                                    <th style={th}>Estado</th>
+                                                    <th style={{ ...th, textAlign: 'right' }}>Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {sellers.map(seller => (
+                                                    <tr key={seller.id} style={row}>
+                                                        <td style={td}>
+                                                            <p style={{ fontWeight: 600, color: '#fff', margin: '0 0 0.1rem' }}>@{seller.username}</p>
+                                                            <p style={{ fontSize: '0.7rem', color: '#9ca3af', margin: 0 }}>{seller.email}</p>
                                                         </td>
-                                                        <td className="px-5 py-4 text-gray-300">{seller.email}</td>
-                                                        <td className="px-5 py-4 text-gray-400 text-xs">{formatDate(seller.subscription_start)}</td>
-                                                        <td className="px-5 py-4">
-                                                            <span className={`text-xs ${isExpired ? 'text-red-400' : 'text-green-400'}`}>
-                                                                {formatDate(seller.subscription_end)}
-                                                                {isExpired && ' (vencida)'}
+                                                        <td style={td}>
+                                                            <span style={{
+                                                                fontSize: '0.7rem', padding: '0.2rem 0.6rem', borderRadius: '999px',
+                                                                border: '1px solid',
+                                                                background: seller.subscription_status === 'active' ? 'rgba(21,128,61,0.2)' : seller.subscription_status === 'pending' ? 'rgba(161,98,7,0.2)' : 'rgba(55,65,81,0.5)',
+                                                                color: seller.subscription_status === 'active' ? '#4ade80' : seller.subscription_status === 'pending' ? '#fbbf24' : '#6b7280',
+                                                                borderColor: seller.subscription_status === 'active' ? '#166534' : seller.subscription_status === 'pending' ? '#92400e' : '#374151',
+                                                            }}>
+                                                                {seller.subscription_status === 'active' ? 'Activo' : seller.subscription_status === 'pending' ? 'Pendiente' : 'Inactivo'}
                                                             </span>
                                                         </td>
-                                                        <td className="px-5 py-4 text-right">
+                                                        <td style={{ ...td, textAlign: 'right' }}>
                                                             <button
-                                                                onClick={() => handleAction(seller.id, 'deactivate')}
-                                                                disabled={actionLoading === seller.id + 'deactivate'}
-                                                                className="px-3 py-1.5 text-xs rounded-lg border border-gray-700 text-gray-400 hover:border-red-700 hover:text-red-400 transition disabled:opacity-50"
+                                                                onClick={() => setDeleteModal(seller)}
+                                                                style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', borderRadius: '0.5rem', border: '1px solid #7f1d1d', color: '#f87171', background: 'none', cursor: 'pointer' }}
                                                             >
-                                                                Desactivar
+                                                                Eliminar
                                                             </button>
                                                         </td>
                                                     </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 )}
                             </div>
                         )}
 
-                        {/* Todos los vendedores */}
-                        {activeTab === 'sellers' && (
-                            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-                                {sellers.length === 0 ? (
-                                    <div className="text-center py-16 text-gray-600">No hay vendedores registrados</div>
+                        {/* ── Tiendas ── */}
+                        {activeTab === 'stores' && (
+                            <div style={card}>
+                                {stores.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '3rem', color: '#4b5563' }}>No hay tiendas registradas</div>
                                 ) : (
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b border-gray-800">
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Usuario</th>
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Nombre</th>
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Correo</th>
-                                                <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Estado</th>
-                                                <th className="text-right px-5 py-3 text-xs text-gray-500 font-medium">Acción</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {sellers.map(seller => (
-                                                <tr key={seller.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition">
-                                                    <td className="px-5 py-4 font-medium text-white">@{seller.username}</td>
-                                                    <td className="px-5 py-4 text-gray-300">{seller.full_name}</td>
-                                                    <td className="px-5 py-4 text-gray-400">{seller.email}</td>
-                                                    <td className="px-5 py-4">
-                                                        <span className={`text-xs px-2 py-1 rounded-full border ${seller.subscription_status === 'active'
-                                                            ? 'bg-green-950 text-green-400 border-green-800'
-                                                            : seller.subscription_status === 'pending'
-                                                                ? 'bg-yellow-950 text-yellow-400 border-yellow-800'
-                                                                : 'bg-gray-800 text-gray-500 border-gray-700'
-                                                            }`}>
-                                                            {seller.subscription_status === 'active' ? 'Activo'
-                                                                : seller.subscription_status === 'pending' ? 'Pendiente'
-                                                                    : 'Inactivo'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-5 py-4 text-right">
-                                                        <button
-                                                            onClick={() => setDeleteModal(seller)}
-                                                            className="px-3 py-1.5 text-xs rounded-lg border border-red-900 text-red-500 hover:bg-red-950 transition"
-                                                        >
-                                                            Eliminar
-                                                        </button>
-                                                    </td>
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={th}>Tienda</th>
+                                                    <th style={th}>Vendedor</th>
+                                                    <th style={th}>Verificada</th>
+                                                    <th style={{ ...th, textAlign: 'right' }}>Acción</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                {stores.map(store => (
+                                                    <tr key={store.id} style={row}>
+                                                        <td style={td}>
+                                                            <p style={{ fontWeight: 600, color: '#fff', margin: 0 }}>{store.name}</p>
+                                                            <p style={{ fontSize: '0.65rem', color: '#6b7280', margin: '0.1rem 0 0', fontFamily: 'monospace' }}>
+                                                                {store.id.split('-')[0]}...
+                                                            </p>
+                                                        </td>
+                                                        <td style={{ ...td, color: '#9ca3af' }}>
+                                                            @{store.profiles?.username || '—'}
+                                                        </td>
+                                                        <td style={td}>
+                                                            <span style={{
+                                                                fontSize: '0.7rem', padding: '0.2rem 0.6rem', borderRadius: '999px',
+                                                                border: '1px solid',
+                                                                background: store.is_verified ? 'rgba(29,78,216,0.2)' : 'rgba(55,65,81,0.5)',
+                                                                color: store.is_verified ? '#60a5fa' : '#6b7280',
+                                                                borderColor: store.is_verified ? '#1e40af' : '#374151',
+                                                            }}>
+                                                                {store.is_verified ? '✓ Verificada' : 'Sin verificar'}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ ...td, textAlign: 'right' }}>
+                                                            <button
+                                                                onClick={() => handleToggleVerified(store.id, store.is_verified)}
+                                                                disabled={actionLoading === store.id + 'verify'}
+                                                                style={{
+                                                                    padding: '0.35rem 0.75rem', fontSize: '0.75rem', borderRadius: '0.5rem',
+                                                                    border: `1px solid ${store.is_verified ? '#374151' : '#1e40af'}`,
+                                                                    color: store.is_verified ? '#9ca3af' : '#60a5fa',
+                                                                    background: 'none', cursor: 'pointer',
+                                                                }}
+                                                            >
+                                                                {actionLoading === store.id + 'verify' ? '...' : store.is_verified ? 'Quitar verificación' : 'Verificar'}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* ── Publicidad ── */}
+                        {activeTab === 'ads' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                <div style={{ ...card, padding: '1.25rem' }}>
+                                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
+                                        Nueva publicidad
+                                    </h3>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {[
+                                            { label: 'URL de imagen', key: 'image_url', placeholder: 'https://...' },
+                                            { label: 'Descripción', key: 'description', placeholder: 'Descripción breve' },
+                                            { label: 'URL destino', key: 'target_url', placeholder: 'https://...' },
+                                        ].map(field => (
+                                            <div key={field.key}>
+                                                <label style={{ display: 'block', fontSize: '0.7rem', color: '#9ca3af', marginBottom: '0.375rem' }}>
+                                                    {field.label}
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={adForm[field.key as keyof typeof adForm] as string}
+                                                    onChange={e => setAdForm({ ...adForm, [field.key]: e.target.value })}
+                                                    placeholder={field.placeholder}
+                                                    style={{ width: '100%', background: '#1f2937', border: '1px solid #374151', borderRadius: '0.5rem', padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: '#fff', outline: 'none', boxSizing: 'border-box' }}
+                                                />
+                                            </div>
+                                        ))}
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.7rem', color: '#9ca3af', marginBottom: '0.375rem' }}>Orden</label>
+                                            <input
+                                                type="number"
+                                                value={adForm.order_index}
+                                                onChange={e => setAdForm({ ...adForm, order_index: Number(e.target.value) })}
+                                                style={{ width: '100%', background: '#1f2937', border: '1px solid #374151', borderRadius: '0.5rem', padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: '#fff', outline: 'none', boxSizing: 'border-box' }}
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={handleCreateAd}
+                                            disabled={adLoading || !adForm.image_url || !adForm.description || !adForm.target_url}
+                                            style={{ width: '100%', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', opacity: adLoading ? 0.6 : 1 }}
+                                        >
+                                            {adLoading ? 'Guardando...' : 'Crear anuncio'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div style={card}>
+                                    {ads.length === 0 ? (
+                                        <div style={{ textAlign: 'center', padding: '2rem', color: '#4b5563' }}>No hay publicidades</div>
+                                    ) : (
+                                        <div style={{ overflowX: 'auto' }}>
+                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                                                <thead>
+                                                    <tr>
+                                                        <th style={th}>Imagen</th>
+                                                        <th style={th}>Descripción</th>
+                                                        <th style={th}>Estado</th>
+                                                        <th style={{ ...th, textAlign: 'right' }}>Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {ads.map(ad => (
+                                                        <tr key={ad.id} style={row}>
+                                                            <td style={td}>
+                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                <img src={ad.image_url} alt="" style={{ width: '3.5rem', height: '2.5rem', objectFit: 'cover', borderRadius: '0.375rem' }} />
+                                                            </td>
+                                                            <td style={{ ...td, color: '#d1d5db', maxWidth: '12rem' }}>
+                                                                <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                                    {ad.description}
+                                                                </span>
+                                                            </td>
+                                                            <td style={td}>
+                                                                <span style={{
+                                                                    fontSize: '0.7rem', padding: '0.2rem 0.6rem', borderRadius: '999px',
+                                                                    border: '1px solid',
+                                                                    background: ad.is_active ? 'rgba(21,128,61,0.2)' : 'rgba(55,65,81,0.5)',
+                                                                    color: ad.is_active ? '#4ade80' : '#6b7280',
+                                                                    borderColor: ad.is_active ? '#166534' : '#374151',
+                                                                }}>
+                                                                    {ad.is_active ? 'Activo' : 'Inactivo'}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ ...td, textAlign: 'right' }}>
+                                                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.375rem', flexWrap: 'wrap' }}>
+                                                                    <button
+                                                                        onClick={() => handleToggleAd(ad.id, ad.is_active)}
+                                                                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', borderRadius: '0.375rem', border: '1px solid #374151', color: '#9ca3af', background: 'none', cursor: 'pointer' }}
+                                                                    >
+                                                                        {ad.is_active ? 'Pausar' : 'Activar'}
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleDeleteAd(ad.id)}
+                                                                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', borderRadius: '0.375rem', border: '1px solid #7f1d1d', color: '#f87171', background: 'none', cursor: 'pointer' }}
+                                                                    >
+                                                                        Eliminar
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </>
-                )}
-
-
-
-                {/* Publicidad */}
-                {activeTab === 'ads' && (
-                    <div className="space-y-6">
-
-                        {/* Formulario crear */}
-                        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-                            <h3 className="text-sm font-semibold text-white mb-4">Nueva publicidad</h3>
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="block text-xs text-gray-400 mb-1">URL de imagen</label>
-                                    <input
-                                        type="text"
-                                        value={adForm.image_url}
-                                        onChange={e => setAdForm({ ...adForm, image_url: e.target.value })}
-                                        placeholder="https://..."
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-green-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-gray-400 mb-1">Descripción</label>
-                                    <input
-                                        type="text"
-                                        value={adForm.description}
-                                        onChange={e => setAdForm({ ...adForm, description: e.target.value })}
-                                        placeholder="Descripción breve del anuncio"
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-green-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-gray-400 mb-1">URL destino</label>
-                                    <input
-                                        type="text"
-                                        value={adForm.target_url}
-                                        onChange={e => setAdForm({ ...adForm, target_url: e.target.value })}
-                                        placeholder="https://..."
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-green-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-gray-400 mb-1">Orden</label>
-                                    <input
-                                        type="number"
-                                        value={adForm.order_index}
-                                        onChange={e => setAdForm({ ...adForm, order_index: Number(e.target.value) })}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-green-500"
-                                    />
-                                </div>
-                                <button
-                                    onClick={handleCreateAd}
-                                    disabled={adLoading || !adForm.image_url || !adForm.description || !adForm.target_url}
-                                    className="w-full bg-green-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-green-700 transition disabled:opacity-50"
-                                >
-                                    {adLoading ? 'Guardando...' : 'Crear anuncio'}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Lista de ads */}
-                        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-                            {ads.length === 0 ? (
-                                <div className="text-center py-12 text-gray-600">No hay publicidades creadas</div>
-                            ) : (
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b border-gray-800">
-                                            <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Imagen</th>
-                                            <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Descripción</th>
-                                            <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">Estado</th>
-                                            <th className="text-right px-5 py-3 text-xs text-gray-500 font-medium">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {ads.map(ad => (
-                                            <tr key={ad.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition">
-                                                <td className="px-5 py-3">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={ad.image_url} alt="" className="w-16 h-10 object-cover rounded-lg" />
-                                                </td>
-                                                <td className="px-5 py-3 text-gray-300 max-w-xs truncate">{ad.description}</td>
-                                                <td className="px-5 py-3">
-                                                    <span className={`text-xs px-2 py-1 rounded-full border ${ad.is_active
-                                                        ? 'bg-green-950 text-green-400 border-green-800'
-                                                        : 'bg-gray-800 text-gray-500 border-gray-700'
-                                                        }`}>
-                                                        {ad.is_active ? 'Activo' : 'Inactivo'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-5 py-3">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <button
-                                                            onClick={() => handleToggleAd(ad.id, ad.is_active)}
-                                                            className="px-3 py-1.5 text-xs rounded-lg border border-gray-700 text-gray-400 hover:text-white transition"
-                                                        >
-                                                            {ad.is_active ? 'Pausar' : 'Activar'}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteAd(ad.id)}
-                                                            className="px-3 py-1.5 text-xs rounded-lg border border-red-900 text-red-500 hover:bg-red-950 transition"
-                                                        >
-                                                            Eliminar
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </div>
                 )}
             </main>
 
             {/* Modal activar */}
             {activateModal && (
-                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
-                    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-sm">
-                        <h3 className="font-bold text-white mb-1">Activar suscripción</h3>
-                        <p className="text-sm text-gray-400 mb-5">
-                            @{activateModal.username} — {activateModal.email}
-                        </p>
-                        <label className="block text-xs text-gray-400 mb-2">Duración</label>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                    <div style={{ background: '#111827', border: '1px solid #1f2937', borderRadius: '1rem', padding: '1.5rem', width: '100%', maxWidth: '20rem' }}>
+                        <h3 style={{ fontWeight: 700, color: '#fff', margin: '0 0 0.25rem' }}>Activar suscripción</h3>
+                        <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: '0 0 1.25rem' }}>@{activateModal.username} — {activateModal.email}</p>
+                        <label style={{ display: 'block', fontSize: '0.7rem', color: '#9ca3af', marginBottom: '0.375rem' }}>Duración</label>
                         <select
                             value={months}
                             onChange={e => setMonths(Number(e.target.value))}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-green-500 mb-5"
+                            style={{ width: '100%', background: '#1f2937', border: '1px solid #374151', borderRadius: '0.5rem', padding: '0.625rem 0.75rem', fontSize: '0.8rem', color: '#fff', marginBottom: '1.25rem', outline: 'none' }}
                         >
                             <option value={1}>1 mes</option>
                             <option value={3}>3 meses</option>
                             <option value={6}>6 meses</option>
                             <option value={12}>1 año</option>
                         </select>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setActivateModal(null)}
-                                className="flex-1 border border-gray-700 text-gray-400 py-2.5 rounded-lg text-sm hover:bg-gray-800 transition"
-                            >
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <button onClick={() => setActivateModal(null)} style={{ flex: 1, border: '1px solid #374151', color: '#9ca3af', background: 'none', borderRadius: '0.5rem', padding: '0.625rem', fontSize: '0.8rem', cursor: 'pointer' }}>
                                 Cancelar
                             </button>
                             <button
                                 onClick={() => handleAction(activateModal.id, 'activate', months)}
                                 disabled={!!actionLoading}
-                                className="flex-1 bg-green-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-green-700 transition disabled:opacity-50"
+                                style={{ flex: 1, background: '#16a34a', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', opacity: actionLoading ? 0.6 : 1 }}
                             >
                                 {actionLoading ? 'Activando...' : 'Confirmar'}
                             </button>
@@ -543,29 +614,24 @@ export default function AdminDashboardClient({ adminName }: { adminName: string 
 
             {/* Modal eliminar */}
             {deleteModal && (
-                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
-                    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-sm">
-                        <h3 className="font-bold text-white mb-1">Eliminar vendedor</h3>
-                        <p className="text-sm text-gray-400 mb-2">
-                            Esta acción es irreversible. Se eliminarán todos los datos de:
-                        </p>
-                        <div className="bg-gray-800 rounded-lg p-3 mb-5 text-sm">
-                            <p className="text-white font-medium">@{deleteModal.username}</p>
-                            <p className="text-gray-400">{deleteModal.email}</p>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                    <div style={{ background: '#111827', border: '1px solid #1f2937', borderRadius: '1rem', padding: '1.5rem', width: '100%', maxWidth: '20rem' }}>
+                        <h3 style={{ fontWeight: 700, color: '#fff', margin: '0 0 0.25rem' }}>Eliminar vendedor</h3>
+                        <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: '0 0 0.75rem' }}>Esta acción es irreversible:</p>
+                        <div style={{ background: '#1f2937', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1.25rem' }}>
+                            <p style={{ color: '#fff', fontWeight: 600, margin: '0 0 0.1rem', fontSize: '0.85rem' }}>@{deleteModal.username}</p>
+                            <p style={{ color: '#9ca3af', margin: 0, fontSize: '0.75rem' }}>{deleteModal.email}</p>
                         </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setDeleteModal(null)}
-                                className="flex-1 border border-gray-700 text-gray-400 py-2.5 rounded-lg text-sm hover:bg-gray-800 transition"
-                            >
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <button onClick={() => setDeleteModal(null)} style={{ flex: 1, border: '1px solid #374151', color: '#9ca3af', background: 'none', borderRadius: '0.5rem', padding: '0.625rem', fontSize: '0.8rem', cursor: 'pointer' }}>
                                 Cancelar
                             </button>
                             <button
                                 onClick={() => handleDelete(deleteModal.id)}
                                 disabled={!!actionLoading}
-                                className="flex-1 bg-red-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+                                style={{ flex: 1, background: '#dc2626', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', opacity: actionLoading ? 0.6 : 1 }}
                             >
-                                {actionLoading ? 'Eliminando...' : 'Eliminar cuenta'}
+                                {actionLoading ? 'Eliminando...' : 'Eliminar'}
                             </button>
                         </div>
                     </div>

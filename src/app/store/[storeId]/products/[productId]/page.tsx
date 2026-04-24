@@ -398,7 +398,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
                                         {store.phones && store.phones.length > 0 && (
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                 <Phone size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '0.1rem' }} />
+                                                <Phone size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '0.1rem' }} />
                                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                                     {store.phones.join(' · ')}
                                                 </span>
