@@ -8,6 +8,8 @@ import ProvinceDropdown from '@/components/ui/ProvinceDropdown';
 import Link from 'next/link';
 import { StoreProduct, Category, Province } from '@/types';
 import { Package, ChevronRight, Search } from 'lucide-react';
+import { getCategoryIcon } from '@/lib/categoryIcons';
+
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -103,32 +105,37 @@ export default async function HomePage() {
               <Package size={18} />
               Todo
             </Link>
-            {categories?.map((cat: Category) => (
-              <Link
-                key={cat.id}
-                href={`/search?category=${cat.id}`}
-                style={{
-                  flexShrink: 0,
-                  display: 'inline-flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '0.3rem',
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: 'var(--radius)',
-                  fontSize: '0.7rem',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  whiteSpace: 'nowrap',
-                  background: 'var(--surface)',
-                  color: 'var(--text-secondary)',
-                  border: '1px solid var(--border)',
-                  minWidth: '3.5rem',
-                }}
-              >
-                <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{cat.icon}</span>
-                {cat.name}
-              </Link>
-            ))}
+            {categories?.map((cat: Category) => {
+              const Icon = getCategoryIcon(cat.name);
+              return (
+                <Link
+                  key={cat.id}
+                  href={`/search?category=${cat.id}`}
+                  style={{
+                    flexShrink: 0,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '999px',
+                    fontSize: '0.8rem',
+                    fontWeight: 500,
+                    textDecoration: 'none',
+                    whiteSpace: 'nowrap',
+                    background: 'var(--surface)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', color: 'var(--accent)' }}>
+                    <Icon size={16} strokeWidth={2} />
+                  </span>
+                  {cat.name}
+                </Link>
+              );
+            })}
+
+
           </div>
         </section>
 
