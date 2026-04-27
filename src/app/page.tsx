@@ -9,10 +9,14 @@ import Link from 'next/link';
 import { StoreProduct, Category, Province } from '@/types';
 import { Package, ChevronRight, Search } from 'lucide-react';
 import { getCategoryIcon } from '@/lib/categoryIcons';
+import { getExchangeRate } from '@/lib/exchangeRate';
+
 
 
 export default async function HomePage() {
   const supabase = await createClient();
+
+  const exchangeRate = await getExchangeRate();
 
   const { data: products } = await supabase
     .from('store_products')
@@ -201,7 +205,7 @@ export default async function HomePage() {
                 @media(min-width: 1024px) { .home-products-grid { grid-template-columns: repeat(3, 1fr) !important; } }
               `}</style>
               {latestProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} usdToCup={exchangeRate.usdToCup} />
               ))}
             </div>
           ) : (

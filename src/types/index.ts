@@ -107,14 +107,14 @@ export interface StoreProduct {
   price: number;
   has_discount: boolean;
   original_price: number | null;
-  status: 'active' | 'paused' | 'sold_out';
+  status: "active" | "paused" | "sold_out";
   specifications: { tag: string; value: string }[];
   created_at: string;
   updated_at: string;
-  stores?: Pick<Store, 'id' | 'name'>[];
+  stores?: Pick<Store, "id" | "name"> | Pick<Store, "id" | "name">[] | null;
   store_product_images?: StoreProductImage[];
+  currency_type?: "CUP" | "USD";
 }
-
 export interface StoreProductImage {
   id: number;
   product_id: string;

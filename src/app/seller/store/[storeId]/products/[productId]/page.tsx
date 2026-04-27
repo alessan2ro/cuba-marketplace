@@ -7,6 +7,8 @@ import {
   CheckCircle, Truck
 } from 'lucide-react';
 import { StoreProduct, StoreProductImage, Store as StoreType } from '@/types';
+import { getExchangeRate } from '@/lib/exchangeRate';
+import PriceDisplay from '@/components/ui/PriceDisplay';
 
 interface Props {
   params: Promise<{ storeId: string; productId: string }>;
@@ -15,6 +17,8 @@ interface Props {
 export default async function ProductDetailPage({ params }: Props) {
   const { storeId, productId } = await params;
   const supabase = await createClient();
+
+  const exchangeRate = await getExchangeRate();
 
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -218,27 +222,14 @@ export default async function ProductDetailPage({ params }: Props) {
             </h1>
 
             {/* Precio */}
-            <div>
-              {product.has_discount && product.original_price ? (
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--error)', lineHeight: 1 }}>
-                    {formatPrice(product.price)}
-                  </span>
-                  <span style={{ fontSize: '1rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>
-                    {formatPrice(product.original_price)}
-                  </span>
-                </div>
-              ) : (
-                <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)', lineHeight: 1 }}>
-                  {formatPrice(product.price)}
-                </span>
-              )}
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                {product.quantity > 0
-                  ? `${product.quantity} unidad${product.quantity !== 1 ? 'es' : ''} disponible${product.quantity !== 1 ? 's' : ''}`
-                  : 'Sin stock'}
-              </p>
-            </div>
+            <PriceDisplay
+              price={product.price}
+              currencyType={product.currency_type || 'CUP'}
+              usdToCup={exchangeRate.usdToCup}
+              size="lg"
+              hasDiscount={product.has_discount}
+              originalPrice={product.original_price}
+            />
 
             {/* Descripción */}
             {product.description && (
@@ -420,29 +411,29 @@ export default async function ProductDetailPage({ params }: Props) {
               {/* Métodos de pago y moneda */}
               {((store.payment_methods && store.payment_methods.length > 0) ||
                 (store.currency && store.currency.length > 0)) && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
-                  {store.payment_methods?.map(m => (
-                    <span key={m} style={{
-                      fontSize: '0.7rem', fontWeight: 500,
-                      padding: '0.2rem 0.6rem', borderRadius: '999px',
-                      background: 'var(--accent-light)', color: 'var(--accent)',
-                      border: '1px solid var(--accent-light)',
-                    }}>
-                      {m}
-                    </span>
-                  ))}
-                  {store.currency?.map(c => (
-                    <span key={c} style={{
-                      fontSize: '0.7rem', fontWeight: 600,
-                      padding: '0.2rem 0.6rem', borderRadius: '999px',
-                      background: 'var(--gold-light)', color: 'var(--gold)',
-                      border: '1px solid var(--gold-light)',
-                    }}>
-                      {c}
-                    </span>
-                  ))}
-                </div>
-              )}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                    {store.payment_methods?.map(m => (
+                      <span key={m} style={{
+                        fontSize: '0.7rem', fontWeight: 500,
+                        padding: '0.2rem 0.6rem', borderRadius: '999px',
+                        background: 'var(--accent-light)', color: 'var(--accent)',
+                        border: '1px solid var(--accent-light)',
+                      }}>
+                        {m}
+                      </span>
+                    ))}
+                    {store.currency?.map(c => (
+                      <span key={c} style={{
+                        fontSize: '0.7rem', fontWeight: 600,
+                        padding: '0.2rem 0.6rem', borderRadius: '999px',
+                        background: 'var(--gold-light)', color: 'var(--gold)',
+                        border: '1px solid var(--gold-light)',
+                      }}>
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
               {/* Horario hoy */}
               {store.schedule && Object.keys(store.schedule).length > 0 && (() => {

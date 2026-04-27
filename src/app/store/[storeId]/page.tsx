@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { StoreProduct } from '@/types';
 import StoreScheduleToggle from '@/components/ui/StoreScheduleToggle';
+import { getExchangeRate } from '@/lib/exchangeRate';
+import PriceDisplay from '@/components/ui/PriceDisplay';
 
 interface Props {
     params: Promise<{ storeId: string }>;
@@ -57,6 +59,8 @@ function isOpenNow(schedule: Record<string, { open: boolean; from: string; to: s
 export default async function PublicStorePage({ params }: Props) {
     const { storeId } = await params;
     const supabase = await createClient();
+
+    const exchangeRate = await getExchangeRate();
 
     const { data: store } = await supabase
         .from('stores')
@@ -291,7 +295,7 @@ export default async function PublicStorePage({ params }: Props) {
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }} className="products-grid">
                                     <style>{`@media(min-width:640px){.products-grid{grid-template-columns:repeat(3,1fr)!important;}}@media(min-width:1024px){.products-grid{grid-template-columns:repeat(4,1fr)!important;}}`}</style>
                                     {categoryProducts.map(product => (
-                                        <ProductCard key={product.id} product={product} />
+                                        <ProductCard key={product.id} product={product as StoreProduct} usdToCup={exchangeRate.usdToCup} />
                                     ))}
                                 </div>
                             </div>
