@@ -42,6 +42,7 @@
   --shadow-lg: 0 8px 32px rgba(0, 45, 45, 0.14);
 }
 
+/*
 @media (prefers-color-scheme: dark) {
   :root {
     --primary: #00857A;
@@ -72,6 +73,7 @@
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
   }
 }
+  */
 
 @theme inline {
   --color-background: var(--background);

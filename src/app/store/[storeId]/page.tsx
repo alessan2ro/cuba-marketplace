@@ -72,11 +72,10 @@ export default async function PublicStorePage({ params }: Props) {
 
     const { data: products } = await supabase
         .from('store_products')
-        .select('*, store_product_images(image_url, is_main), stores(id, name)')
+        .select('*, currency_type, store_product_images(image_url, is_main), stores(id, name)')
         .eq('store_id', storeId)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
-
     const { dayName: today } = getCubaTime();
     const todaySchedule = store.schedule?.[today];
     const open = store.schedule ? isOpenNow(store.schedule) : false;

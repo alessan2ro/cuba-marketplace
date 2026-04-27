@@ -18,16 +18,18 @@ export default async function HomePage() {
 
   const exchangeRate = await getExchangeRate();
 
+
   const { data: products } = await supabase
     .from('store_products')
     .select(`
-      id, store_id, seller_id, name, description,
-      category, quantity, price, has_discount,
-      original_price, status, specifications,
-      created_at, updated_at,
-      stores(id, name),
-      store_product_images(image_url, is_main)
-    `)
+    id, store_id, seller_id, name, description,
+    category, quantity, price, has_discount,
+    original_price, status, specifications,
+    currency_type,
+    created_at, updated_at,
+    stores(id, name),
+    store_product_images(image_url, is_main)
+  `)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(6);

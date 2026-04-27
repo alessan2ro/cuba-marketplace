@@ -1,4 +1,4 @@
-import { CarFront, Cherry, Dumbbell, Hamburger, Lamp, LucideIcon, MonitorSmartphone, Package, Panda, PawPrint, Shirt } from "lucide-react";
+import { CarFront, Drill,  Cherry, Dumbbell, Hamburger, Lamp, LucideIcon, MonitorSmartphone, Package, Panda, PawPrint, Shirt } from "lucide-react";
 
 const iconMap: Record<string, LucideIcon> = {
     'Electrónica': MonitorSmartphone,
@@ -10,6 +10,7 @@ const iconMap: Record<string, LucideIcon> = {
     'Tienda de mascotas': PawPrint,
     'Vehículos': CarFront,
     'Juguetes': Panda,
+    'Ferretería': Drill,
 
 };
 

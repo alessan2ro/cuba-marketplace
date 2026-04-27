@@ -18,34 +18,27 @@ export default function PriceDisplay({
     originalPrice,
 }: Props) {
     const fontSize = size === 'lg' ? '2rem' : size === 'md' ? '1rem' : '0.875rem';
-    const altFontSize = size === 'lg' ? '1rem' : '0.72rem';
+    const altFontSize = size === 'lg' ? '0.9rem' : '0.68rem';
 
-    const formatCUP = (v: number) =>
-        new Intl.NumberFormat('es-CU', { style: 'currency', currency: 'CUP', minimumFractionDigits: 0 }).format(v);
+    const fmt = (value: number, currency: 'CUP' | 'USD') => {
+        const rounded = currency === 'CUP'
+            ? Math.round(value)
+            : Math.round(value * 100) / 100;
+        return currency === 'CUP'
+            ? `${rounded.toLocaleString('es-CU')} CUP`
+            : `${rounded.toFixed(2)} USD`;
+    };
 
-    const formatUSD = (v: number) =>
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+    const mainLabel = fmt(price, currencyType);
+    const altCurrency: 'CUP' | 'USD' = currencyType === 'USD' ? 'CUP' : 'USD';
+    const altValue = currencyType === 'USD' ? price * usdToCup : price / usdToCup;
+    const altLabel = `≈ ${fmt(altValue, altCurrency)}`;
 
-    // Precio principal (el que puso el vendedor)
-    const mainLabel = currencyType === 'USD' ? formatUSD(price) : formatCUP(price);
-
-    // Precio alternativo (conversión)
-    const altPrice = currencyType === 'USD'
-        ? formatCUP(price * usdToCup)
-        : formatUSD(price / usdToCup);
-    const altLabel = currencyType === 'USD'
-        ? `≈ ${formatCUP(price * usdToCup)}`
-        : `≈ ${formatUSD(price / usdToCup)}`;
-
-    // Original con descuento
-    const mainOriginal = originalPrice
-        ? currencyType === 'USD' ? formatUSD(originalPrice) : formatCUP(originalPrice)
-        : null;
+    const mainOriginal = originalPrice ? fmt(originalPrice, currencyType) : null;
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-            {/* Precio principal */}
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', flexWrap: 'wrap' }}>
                 <span style={{
                     fontSize,
                     fontWeight: 700,
@@ -55,31 +48,16 @@ export default function PriceDisplay({
                     {mainLabel}
                 </span>
                 {hasDiscount && mainOriginal && (
-                    <span style={{ fontSize: altFontSize, color: 'var(--text-muted)', textDecoration: 'line-through' }}>
+                    <span style={{
+                        fontSize: altFontSize,
+                        color: 'var(--text-muted)',
+                        textDecoration: 'line-through',
+                    }}>
                         {mainOriginal}
                     </span>
                 )}
-                {/* Badge moneda */}
-                <span style={{
-                    fontSize: '0.6rem',
-                    fontWeight: 700,
-                    padding: '0.1rem 0.4rem',
-                    borderRadius: '999px',
-                    background: currencyType === 'USD' ? '#eff6ff' : 'var(--primary-light)',
-                    color: currencyType === 'USD' ? '#1d4ed8' : 'var(--primary)',
-                    border: `1px solid ${currencyType === 'USD' ? '#bfdbfe' : 'var(--primary-muted)'}`,
-                    alignSelf: 'center',
-                }}>
-                    {currencyType}
-                </span>
             </div>
-
-            {/* Precio alternativo */}
-            <span style={{
-                fontSize: altFontSize,
-                color: 'var(--text-muted)',
-                fontWeight: 400,
-            }}>
+            <span style={{ fontSize: altFontSize, color: 'var(--text-muted)' }}>
                 {altLabel}
             </span>
         </div>
