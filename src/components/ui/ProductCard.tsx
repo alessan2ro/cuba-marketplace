@@ -5,12 +5,14 @@ import { MapPin, Store, Tag, Package } from 'lucide-react';
 import { Product, StoreProduct } from '@/types';
 import PriceDisplay from './PriceDisplay';
 
+
 interface ProductCardProps {
   product: Product | StoreProduct;
   usdToCup?: number;
+  layout?: 'grid' | 'list';
 }
 
-export default function ProductCard({ product, usdToCup = 530 }: ProductCardProps) {
+export default function ProductCard({ product, usdToCup = 530, layout = 'grid' }: ProductCardProps) {
   const isStoreProduct = 'store_id' in product && !('title' in product);
 
   const mainImage = isStoreProduct
@@ -41,148 +43,115 @@ export default function ProductCard({ product, usdToCup = 530 }: ProductCardProp
     ? (storeProduct.currency_type || 'CUP')
     : 'USD';
 
-  return (
-    <>
-      <style>{`
-        .product-card {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius-lg);
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          transition: box-shadow 0.2s, transform 0.2s;
-          box-shadow: var(--shadow-sm);
-          text-decoration: none;
-          color: inherit;
-          cursor: pointer;
-        }
-        .product-card:hover {
-          box-shadow: var(--shadow);
-          transform: translateY(-2px);
-        }
-        .product-card:hover .product-img {
-          transform: scale(1.04);
-        }
-        .product-img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          padding: 0.5rem;
-          transition: transform 0.25s ease;
-        }
-      `}</style>
+  if (layout === 'list') {
+    return (
+      <>
+        <style>{`
+          .product-card-list {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem;
+            text-decoration: none;
+            color: inherit;
+            transition: box-shadow 0.2s, transform 0.15s;
+            box-shadow: var(--shadow-sm);
+          }
+          .product-card-list:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-1px);
+          }
+        `}</style>
+        <Link href={href} className="product-card-list">
 
-      <Link href={href} className="product-card">
-
-        {/* Imagen */}
-        <div style={{
-          width: '100%',
-          aspectRatio: '4/3',
-          background: 'var(--surface-2)',
-          overflow: 'hidden',
-          position: 'relative',
-          flexShrink: 0,
-        }}>
-          {mainImage ? (
-            <img src={mainImage.image_url} alt={title} className="product-img" />
-          ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Package size={36} style={{ color: 'var(--text-muted)' }} />
-            </div>
-          )}
-
-          {/* Badges */}
-          <div style={{ position: 'absolute', top: '0.5rem', left: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            {!isStoreProduct && regularProduct.condition && (
-              <span style={{
-                fontSize: '0.65rem', fontWeight: 600,
-                padding: '0.2rem 0.5rem', borderRadius: '999px',
-                background: regularProduct.condition === 'nuevo' ? '#dcfce7' : 'var(--surface-2)',
-                color: regularProduct.condition === 'nuevo' ? '#166534' : 'var(--text-secondary)',
-                border: `1px solid ${regularProduct.condition === 'nuevo' ? '#bbf7d0' : 'var(--border)'}`,
-              }}>
-                {regularProduct.condition === 'nuevo' ? 'Nuevo' : 'Usado'}
-              </span>
-            )}
-            {isStoreProduct && storeProduct.has_discount && (
-              <span style={{
-                fontSize: '0.65rem', fontWeight: 700,
-                padding: '0.2rem 0.5rem', borderRadius: '999px',
-                background: '#fef2f2', color: 'var(--error)',
-                border: '1px solid #fecaca',
-              }}>
-                {storeProduct.original_price
-                  ? `-${Math.round((1 - storeProduct.price / storeProduct.original_price) * 100)}%`
-                  : 'Oferta'}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Contenido */}
-        <div style={{ padding: '0.75rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-
-          {/* Tienda / ubicación */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap', minWidth: 0 }}>
-            {isStoreProduct ? (
-              <>
-                <Store size={10} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                <span style={{ fontSize: '0.68rem', color: 'var(--accent)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '8rem' }}>
-                  {storeInfo?.name || '—'}
-                </span>
-                {storeProduct.category && (
-                  <>
-                    <span style={{ color: 'var(--border)', fontSize: '0.68rem' }}>·</span>
-                    <Tag size={9} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '6rem' }}>
-                      {storeProduct.category}
-                    </span>
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                <MapPin size={10} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                  {regularProduct.provinces?.name || ''}
-                </span>
-                {regularProduct.categories && (
-                  <>
-                    <span style={{ color: 'var(--border)', fontSize: '0.68rem' }}>·</span>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                      {regularProduct.categories.name}
-                    </span>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Título */}
-          <h3 style={{
-            fontSize: '0.85rem', fontWeight: 600,
-            color: 'var(--text-primary)', lineHeight: 1.35,
-            display: '-webkit-box', WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: 0,
+          {/* Imagen */}
+          <div style={{
+            width: '5rem', height: '5rem',
+            flexShrink: 0,
+            borderRadius: 'var(--radius)',
+            overflow: 'hidden',
+            background: 'var(--surface-2)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            {title}
-          </h3>
+            {mainImage ? (
+              <img
+                src={mainImage.image_url}
+                alt={title}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '0.25rem' }}
+              />
+            ) : (
+              <Package size={24} style={{ color: 'var(--text-muted)' }} />
+            )}
+          </div>
 
-          {/* Descripción */}
-          {description && (
-            <p style={{
-              fontSize: '0.72rem', color: 'var(--text-secondary)',
-              lineHeight: 1.5, display: '-webkit-box',
-              WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-              overflow: 'hidden', margin: 0,
+          {/* Info */}
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+
+            {/* Tienda */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              {isStoreProduct ? (
+                <>
+                  <Store size={10} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.68rem', color: 'var(--accent)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {storeInfo?.name || '—'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <MapPin size={10} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                    {regularProduct.provinces?.name || ''}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Título */}
+            <h3 style={{
+              fontSize: '0.875rem', fontWeight: 600,
+              color: 'var(--text-primary)', margin: 0,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
-              {description}
-            </p>
-          )}
+              {title}
+            </h3>
+
+            {/* Descripción */}
+            {description && (
+              <p style={{
+                fontSize: '0.72rem', color: 'var(--text-secondary)', margin: 0,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {description}
+              </p>
+            )}
+
+            {/* Categoría y badges */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', flexWrap: 'wrap', marginTop: '0.1rem' }}>
+              {isStoreProduct && storeProduct.category && (
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                  {storeProduct.category}
+                </span>
+              )}
+              {isStoreProduct && storeProduct.has_discount && (
+                <span style={{
+                  fontSize: '0.6rem', fontWeight: 700,
+                  padding: '0.1rem 0.4rem', borderRadius: '999px',
+                  background: '#fef2f2', color: 'var(--error)',
+                  border: '1px solid #fecaca',
+                }}>
+                  {storeProduct.original_price
+                    ? `-${Math.round((1 - storeProduct.price / storeProduct.original_price) * 100)}%`
+                    : 'Oferta'}
+                </span>
+              )}
+            </div>
+          </div>
 
           {/* Precio */}
-          <div style={{ marginTop: 'auto', paddingTop: '0.375rem' }}>
+          <div style={{ flexShrink: 0, textAlign: 'right' }}>
             <PriceDisplay
               price={product.price}
               currencyType={currencyType}
@@ -190,11 +159,10 @@ export default function ProductCard({ product, usdToCup = 530 }: ProductCardProp
               size="sm"
               hasDiscount={isStoreProduct ? storeProduct.has_discount : false}
               originalPrice={isStoreProduct ? storeProduct.original_price : null}
-              
             />
           </div>
-        </div>
-      </Link>
-    </>
-  );
+        </Link>
+      </>
+    );
+  }
 }
